@@ -45,5 +45,5 @@ public enum WorkKind {
     DOUBLE_CRUSHER("crusher_double",60000,100,6);
     public final String id;
     public final int capacity, inputRate, slots;
-    WorkKind(String id,int capacity,int inputRate,int slots){this.id=id;this.capacity=capacity;this.inputRate=inputRate;this.slots=slots;}
+    WorkKind(String id,int capacity,int inputRate,int slots){this.id=id;this.capacity=id.equals("atomic_reconstructor")?PortConfig.number("reconstructorPower",300000,Integer.MAX_VALUE):capacity;this.inputRate=inputRate;this.slots=slots;}
 }

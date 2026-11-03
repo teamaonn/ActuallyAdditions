@@ -5,6 +5,8 @@ import net.minecraft.client.gui.screens.MenuScreens;
 
 public final class PowerClient implements ClientModInitializer {
     @Override public void onInitializeClient() {
+        de.ellpeck.actuallyadditions.fabric.content.ClientRecipes.initialize();
+        net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(de.ellpeck.actuallyadditions.fabric.content.Content.ENTITY,de.ellpeck.actuallyadditions.fabric.content.DisplayRenderer::new);
         net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(de.ellpeck.actuallyadditions.fabric.content.WormEntity.TYPE,net.minecraft.client.renderer.entity.ItemEntityRenderer::new);
         MenuScreens.register(de.ellpeck.actuallyadditions.fabric.content.Content.GUIDE_MENU,de.ellpeck.actuallyadditions.fabric.content.GuideScreen::new);
         for(var f:de.ellpeck.actuallyadditions.fabric.content.Oils.ALL.values()){

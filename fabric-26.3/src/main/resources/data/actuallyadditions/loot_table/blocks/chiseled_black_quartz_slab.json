@@ -2,19 +2,27 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "bonus_rolls": 0.0,
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ],
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "actuallyadditions:chiseled_black_quartz_slab"
+          "name": "actuallyadditions:chiseled_black_quartz_slab",
+          "modifier": {
+            "type": "minecraft:set_count",
+            "count": 2,
+            "condition": {
+              "type": "minecraft:match_block",
+              "blocks": "actuallyadditions:chiseled_black_quartz_slab",
+              "state": {
+                "type": "double"
+              }
+            }
+          }
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ],
   "random_sequence": "actuallyadditions:blocks/chiseled_black_quartz_slab"

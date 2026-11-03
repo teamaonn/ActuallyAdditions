@@ -29,6 +29,7 @@ public final class Accessories {
         for(var name:List.of("drill","leaf_blo","phan_con","book")){String tag=name.equals("leaf_blo")?"leaf_blower":name;Content.item(name+"_pattern",Item::new,new Item.Properties().stacksTo(1).delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS,lookup->lookup.lookupOrThrow(Registries.BANNER_PATTERN).getOrThrow(TagKey.create(Registries.BANNER_PATTERN,PowerMod.id("pattern_item/"+tag)))));}
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(s->{for(var p:s.getPlayerList().getPlayers())Wings.tick(p);});
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(s->Wings.GRANTED.clear());
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler,server)->Wings.release(handler.player));
     }
     public static boolean canSeeLasers(Player p){var head=p.getItemBySlot(EquipmentSlot.HEAD);return head.is(PowerMod.ITEMS.get("engineers_goggles"))||head.is(PowerMod.ITEMS.get("engineers_goggles_advanced"))||p.getMainHandItem().is(PowerMod.ITEMS.get("laser_wrench"))||p.getOffhandItem().is(PowerMod.ITEMS.get("laser_wrench"));}
     public static final class Ring extends EnergyItem {
@@ -45,7 +46,8 @@ public final class Accessories {
         private final boolean advanced;Blower(boolean a,Properties p){super(p.stacksTo(1));advanced=a;}
         @Override public InteractionResult use(Level l,Player p,InteractionHand h){p.startUsingItem(h);return InteractionResult.SUCCESS;}
         @Override public int getUseDuration(ItemStack s,LivingEntity e){return Integer.MAX_VALUE;}
-        @Override public void onUseTick(Level l,LivingEntity e,ItemStack s,int remaining){if(!(l instanceof ServerLevel server)||!advanced&&remaining%3!=0)return;List<BlockPos> plants=new ArrayList<>();for(var pos:BlockPos.betweenClosed(e.blockPosition().offset(-5,advanced?-5:-1,-5),e.blockPosition().offset(5,advanced?5:1,5)))if(l.hasChunkAt(pos)&&(l.getBlockState(pos).getBlock() instanceof VegetationBlock||advanced&&l.getBlockState(pos).is(net.minecraft.tags.BlockTags.LEAVES)))plants.add(pos.immutable());if(plants.isEmpty())return;var pos=plants.get(server.getRandom().nextInt(plants.size()));if(e instanceof Player p&&!net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(l,p,pos,l.getBlockState(pos),null))return;server.destroyBlock(pos,true,e);}
+        public boolean clear(ServerLevel server,net.minecraft.core.BlockPos center,int remaining,Player player){if(!advanced&&remaining%3!=0)return false;List<BlockPos> plants=new ArrayList<>();for(var pos:BlockPos.betweenClosed(center.offset(-5,advanced?-5:-1,-5),center.offset(5,advanced?5:1,5)))if(server.hasChunkAt(pos)&&(server.getBlockState(pos).getBlock() instanceof VegetationBlock||advanced&&server.getBlockState(pos).is(net.minecraft.tags.BlockTags.LEAVES)))plants.add(pos.immutable());if(plants.isEmpty())return false;var pos=plants.get(server.getRandom().nextInt(plants.size()));if(player!=null&&!net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(server,player,pos,server.getBlockState(pos),null))return false;return server.destroyBlock(pos,true,player);}
+        @Override public void onUseTick(Level l,LivingEntity e,ItemStack s,int remaining){if(l instanceof ServerLevel server)clear(server,e.blockPosition(),remaining,e instanceof Player p?p:null);}
     }
     public static final class VoidSack extends FilterItem {
         VoidSack(Properties p){super(p);}
@@ -56,6 +58,7 @@ public final class Accessories {
         private static final Set<UUID> GRANTED=new HashSet<>();Wings(Properties p){super(p);}
         static int used(ItemStack s){return Math.clamp(s.getOrDefault(DataComponents.CUSTOM_DATA,CustomData.EMPTY).copyTag().getIntOr("flight_used",0),0,800);}
         @Override public boolean isBarVisible(ItemStack s){return true;}@Override public int getBarWidth(ItemStack s){return 13-(int)(13L*used(s)/800);}@Override public int getBarColor(ItemStack s){return 0x4fafea;}
+        static void release(ServerPlayer p){if(GRANTED.remove(p.getUUID())&&!p.isCreative()&&!p.isSpectator()){p.getAbilities().mayfly=false;p.getAbilities().flying=false;}}
         static void tick(ServerPlayer p){
             ItemStack wings=ItemStack.EMPTY;for(int i=0;i<p.getInventory().getContainerSize();i++)if(p.getInventory().getItem(i).getItem() instanceof Wings){wings=p.getInventory().getItem(i);break;}
             if(p.isCreative()||p.isSpectator()){GRANTED.remove(p.getUUID());return;}

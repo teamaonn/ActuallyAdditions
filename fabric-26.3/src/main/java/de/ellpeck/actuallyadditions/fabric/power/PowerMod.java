@@ -26,6 +26,7 @@ public final class PowerMod implements ModInitializer {
     public static MenuType<GeneratorMenu> GENERATOR_MENU;
     public static Identifier id(String path) { return Identifier.fromNamespaceAndPath("actuallyadditions", path); }
     @Override public void onInitialize() {
+        de.ellpeck.actuallyadditions.fabric.content.PortConfig.load();
         GENERATOR = block("coal_generator", -1);
         RELAYS.add(block("laser_relay", 0));
         RELAYS.add(block("laser_relay_advanced", 1));
@@ -40,7 +41,7 @@ public final class PowerMod implements ModInitializer {
         ItemStorage.SIDED.registerForBlockEntity((e, side) -> ContainerStorage.of(e, side), GENERATOR_ENTITY);
         de.ellpeck.actuallyadditions.fabric.content.Content.initialize();
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, id("power"), FabricCreativeModeTab.builder()
-                .title(Component.literal("Actually Additions: Power"))
+                .title(Component.literal("Actually Additions"))
                 .icon(() -> new ItemStack(GENERATOR)).displayItems((p, out) -> ITEMS.values().forEach(out::accept)).build());
     }
     private static PowerBlock block(String name, int tier) {

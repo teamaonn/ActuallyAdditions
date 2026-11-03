@@ -1,0 +1,24 @@
+{
+  "wants": {
+    "id": "actuallyadditions:coffee_beans",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 20,
+      "max": 30
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald"
+  },
+  "max_uses": 16,
+  "xp": 10,
+  "reputation_discount": 0.05,
+  "given_item_modifier": {
+    "type": "minecraft:set_count",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 1,
+      "max": 2
+    }
+  }
+}

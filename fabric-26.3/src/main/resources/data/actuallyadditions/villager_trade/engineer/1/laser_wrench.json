@@ -1,0 +1,20 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 1,
+      "max": 3
+    }
+  },
+  "gives": {
+    "id": "actuallyadditions:laser_wrench"
+  },
+  "max_uses": 16,
+  "xp": 2,
+  "reputation_discount": 0.05,
+  "given_item_modifier": {
+    "type": "minecraft:set_count",
+    "count": 1
+  }
+}

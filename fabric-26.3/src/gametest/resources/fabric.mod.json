@@ -6,7 +6,8 @@
     "fabric-gametest": [
       "de.ellpeck.actuallyadditions.fabric.power.PowerTests",
       "de.ellpeck.actuallyadditions.fabric.power.CoreTests",
-      "de.ellpeck.actuallyadditions.fabric.power.TransportTests"
+      "de.ellpeck.actuallyadditions.fabric.power.TransportTests",
+      "de.ellpeck.actuallyadditions.fabric.power.GameplayTests"
     ]
   },
   "depends": {

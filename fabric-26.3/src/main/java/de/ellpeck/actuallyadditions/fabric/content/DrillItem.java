@@ -27,8 +27,9 @@ public final class DrillItem extends EnergyItem {
     public DrillItem(Properties p){super(250000,1000,p.tool(ToolMaterial.NETHERITE,MINEABLE,8,-3,0));}
     public static boolean has(ItemStack drill,String upgrade){return drill.getOrDefault(DataComponents.CONTAINER,ItemContainerContents.EMPTY).nonEmptyItemCopyStream().anyMatch(s->s.is(PowerMod.ITEMS.get("drill_upgrade_"+upgrade)));}
     public static int cost(ItemStack s){int n=100;if(has(s,"speed")){n+=50;if(has(s,"speed_ii")){n+=75;if(has(s,"speed_iii"))n+=175;}}if(has(s,"silk_touch"))n+=100;if(has(s,"fortune")){n+=40;if(has(s,"fortune_ii"))n+=80;}if(has(s,"three_by_three")){n+=10;if(has(s,"five_by_five"))n+=30;}return n;}
-    @Override public float getDestroySpeed(ItemStack s,BlockState state){if(energy(s)<cost(s))return .1F;if(!state.is(MINEABLE))return 1;float n=8;if(has(s,"speed"))n+=has(s,"speed_ii")?(has(s,"speed_iii")?37:25):8;if(has(s,"three_by_three")){n*=.5F;if(has(s,"five_by_five"))n*=.35F;}return n;}
-    @Override public boolean isCorrectToolForDrops(ItemStack s,BlockState state){return energy(s)>=cost(s)&&super.isCorrectToolForDrops(s,state);}
+    private static boolean mineable(BlockState state){return state.is(MINEABLE)||PortConfig.contains("itemsSettings","drillExtraWhitelist",net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());}
+    @Override public float getDestroySpeed(ItemStack s,BlockState state){if(energy(s)<cost(s))return .1F;if(!mineable(state))return 1;float n=8;if(has(s,"speed"))n+=has(s,"speed_ii")?(has(s,"speed_iii")?37:25):8;if(has(s,"three_by_three")){n*=.5F;if(has(s,"five_by_five"))n*=.35F;}return n;}
+    @Override public boolean isCorrectToolForDrops(ItemStack s,BlockState state){return energy(s)>=cost(s)&&(super.isCorrectToolForDrops(s,state)||PortConfig.contains("itemsSettings","drillExtraWhitelist",net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString()));}
     @Override public boolean mineBlock(ItemStack s,Level l,BlockState state,BlockPos pos,LivingEntity entity){if(!l.isClientSide()&&state.getDestroySpeed(l,pos)>0)set(s,energy(s)-cost(s));return true;}
     @Override public void hurtEnemy(ItemStack s,LivingEntity target,LivingEntity attacker){set(s,energy(s)-100);}
     @Override public InteractionResult use(Level l,Player p,InteractionHand h){if(!l.isClientSide()){var stack=p.getItemInHand(h);p.openMenu(new SimpleMenuProvider((id,inv,player)->new ItemSlotsMenu(id,inv,stack,9),Component.literal("Drill upgrades")));}return InteractionResult.SUCCESS;}
@@ -55,7 +56,7 @@ public final class DrillItem extends EnergyItem {
                 for(int a=-radius;a<=radius;a++)for(int b=-radius;b<=radius;b++){
                     if(a==0&&b==0)continue;if(energy(stack)<cost(stack))return false;
                     var target=switch(side.getAxis()){case X->pos.offset(0,a,b);case Y->pos.offset(a,0,b);case Z->pos.offset(a,b,0);};if(!level.hasChunkAt(target))continue;
-                    var block=level.getBlockState(target);if(!block.is(MINEABLE)||block.getDestroySpeed(level,target)<0||block.getDestroySpeed(level,target)>hardness+5)continue;
+                    var block=level.getBlockState(target);if(!mineable(block)||block.getDestroySpeed(level,target)<0||block.getDestroySpeed(level,target)>hardness+5)continue;
                     server.gameMode.destroyBlock(target);
                 }
             }finally{stack.set(DataComponents.ENCHANTMENTS,original);BREAKING.remove(player.getUUID());}return false;

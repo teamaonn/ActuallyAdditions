@@ -25,7 +25,7 @@ public final class RelayEntity extends BlockEntity implements BalmEnergyStorageP
     public RelayEntity(BlockPos pos, BlockState state) { super(PowerMod.RELAY_ENTITY, pos, state); }
     public int tier() { return ((PowerBlock)getBlockState().getBlock()).tier; }
     public int capacity() { return switch (tier()) { case 1 -> 10000; case 2 -> 100000; default -> 1000; }; }
-    public int lossPercent() { return switch (tier()) { case 1 -> 8; case 2 -> 10; default -> 5; }; }
+    public int lossPercent() { if(!de.ellpeck.actuallyadditions.fabric.content.PortConfig.bool("machineSettings","laserRelayLoss"))return 0;return switch (tier()) { case 1 -> 8; case 2 -> 10; default -> 5; }; }
     public int range() { return rangeUpgrade ? 35 : 15; }
     public String status() { return "Energy relay: " + mode + " | " + links.size() + " links | " + range() + " block range | " + capacity() + " energy/t"; }
     public void changed() { setChanged(); }

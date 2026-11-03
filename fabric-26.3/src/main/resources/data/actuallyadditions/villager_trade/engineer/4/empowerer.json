@@ -1,0 +1,20 @@
+{
+  "wants": {
+    "id": "actuallyadditions:empowerer",
+    "count": 1
+  },
+  "gives": {
+    "id": "minecraft:emerald"
+  },
+  "max_uses": 16,
+  "xp": 10,
+  "reputation_discount": 0.05,
+  "given_item_modifier": {
+    "type": "minecraft:set_count",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 15,
+      "max": 20
+    }
+  }
+}

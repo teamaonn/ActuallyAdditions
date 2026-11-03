@@ -1,0 +1,118 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 10,
+                "min": 3
+              },
+              "type": "minecraft:set_count"
+            }
+          ],
+          "name": "actuallyadditions:wood_casing",
+          "weight": 60
+        },
+        {
+          "type": "minecraft:item",
+          "modifier": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3,
+                "min": 1
+              },
+              "type": "minecraft:set_count"
+            }
+          ],
+          "name": "actuallyadditions:iron_casing",
+          "weight": 40
+        },
+        {
+          "type": "minecraft:item",
+          "modifier": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 5,
+                "min": 1
+              },
+              "type": "minecraft:set_count"
+            }
+          ],
+          "name": "actuallyadditions:black_quartz",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
+          "modifier": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 2,
+                "min": 1
+              },
+              "type": "minecraft:set_count"
+            }
+          ],
+          "name": "actuallyadditions:bats_wing",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "actuallyadditions:drill_core",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:tag",
+          "expand": true,
+          "modifier": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3,
+                "min": 1
+              },
+              "type": "minecraft:set_count"
+            }
+          ],
+          "weight": 20,
+          "items": "#actuallyadditions:crystals"
+        },
+        {
+          "type": "minecraft:tag",
+          "expand": true,
+          "modifier": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3,
+                "min": 1
+              },
+              "type": "minecraft:set_count"
+            }
+          ],
+          "weight": 3,
+          "items": "#actuallyadditions:crystals"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 7,
+        "min": 4
+      }
+    }
+  ],
+  "random_sequence": "actuallyadditions:engineer_house"
+}

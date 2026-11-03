@@ -235,5 +235,6 @@
   "block.actuallyadditions.emeradic_crystal_cluster": "Green Crystal Cluster",
   "block.actuallyadditions.enori_crystal_cluster": "White Crystal Cluster",
   "item.actuallyadditions.booklet": "Actually Additions Manual (WIP)",
-  "item.actuallyadditions.worm": "Worm"
+  "item.actuallyadditions.worm": "Worm",
+  "entity.minecraft.villager.actuallyadditions.engineer": "Engineer"
 }

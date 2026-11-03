@@ -19,13 +19,16 @@ import org.slf4j.LoggerFactory;
 public final class Processing {
     private static final Logger LOG=LoggerFactory.getLogger("actuallyadditions/processing");
     private static final Map<MinecraftServer,List<Entry>> CACHE=Collections.synchronizedMap(new WeakHashMap<>());
+    public static List<Entry> CLIENT=List.of();
+    public static List<Entry> snapshot(MinecraftServer server){return CACHE.getOrDefault(server,List.of());}
     public record Entry(Identifier id,String type,JsonObject data){
         public String key(){return id+"#"+data.hashCode();}
         public int number(String name,int fallback){return data.has(name)?Math.max(0,data.get(name).getAsInt()):fallback;}
     }
     public static void initialize(){
+        ProcessingSync.initialize();
         ServerLifecycleEvents.SERVER_STARTED.register(s->reload(s,s.getResourceManager()));
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((s,manager,success)->{if(success)reload(s,manager);});
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((s,manager,success)->{if(success){reload(s,manager);for(var player:s.getPlayerList().getPlayers())ProcessingSync.send(s,player);}});
         ServerLifecycleEvents.SERVER_STOPPED.register(CACHE::remove);
     }
     private static void reload(MinecraftServer server,ResourceManager manager){
@@ -39,8 +42,8 @@ public final class Processing {
         recipes.sort(Comparator.comparing(e->e.id().toString()));CACHE.put(server,List.copyOf(recipes));LOG.info("Loaded {} processing recipes",recipes.size());
     }
     public static List<Entry> all(Level level,String type){
-        if(!(level instanceof ServerLevel server))return List.of();
-        return CACHE.getOrDefault(server.getServer(),List.of()).stream().filter(e->e.type.equals(type)).toList();
+        var entries=level instanceof ServerLevel server?snapshot(server.getServer()):CLIENT;
+        return entries.stream().filter(e->e.type.equals(type)).toList();
     }
     public static Optional<Entry> find(Level level,String type,ItemStack input){return all(level,type).stream().filter(e->matches(e.data.get("ingredient"),input)).findFirst();}
     public static boolean matches(JsonElement definition,ItemStack stack){

@@ -71,11 +71,18 @@ public final class Content {
         ItemStorage.SIDED.registerForBlockEntity((e,side)->e.itemStorage(side),ENTITY);
         net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.registerForBlockEntity((e,side)->e.fluidStorage(side),ENTITY);
         Processing.initialize();
+        Villages.initialize();
+        ExtraLoot.initialize();
         net.fabricmc.fabric.api.biome.v1.BiomeModifications.addFeature(
-                net.fabricmc.fabric.api.biome.v1.BiomeSelectors.foundInOverworld(),
+                context->PortConfig.bool("worldgenSettings","generateQuartz")&&net.fabricmc.fabric.api.biome.v1.BiomeSelectors.foundInOverworld().test(context),
                 net.minecraft.world.level.levelgen.GenerationStep.Decoration.UNDERGROUND_ORES,
                 ResourceKey.create(Registries.PLACED_FEATURE,PowerMod.id("ore_black_quartz")));
+        for(var name:java.util.List.of("canola","flax","coffee","rice"))net.fabricmc.fabric.api.biome.v1.BiomeModifications.addFeature(
+            context->PortConfig.bool("worldgenSettings","generate"+Character.toUpperCase(name.charAt(0))+name.substring(1))&&net.fabricmc.fabric.api.biome.v1.BiomeSelectors.foundInOverworld().test(context)&&(name.equals("rice")||name.equals("flax")&&(biomeTag(context,"is_cold")||biomeTag(context,"is_dense_vegetation"))||name.equals("coffee")&&biomeTag(context,"is_hot")||name.equals("canola")&&(biomeTag(context,"is_hot")||biomeTag(context,"is_sparse_vegetation"))),
+            net.minecraft.world.level.levelgen.GenerationStep.Decoration.VEGETAL_DECORATION,ResourceKey.create(Registries.PLACED_FEATURE,PowerMod.id(name+"_patch")));
+
     }
+    private static boolean biomeTag(net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext context,String name){return context.hasTag(net.minecraft.tags.TagKey.create(Registries.BIOME,net.minecraft.resources.Identifier.parse("c:"+name+"/overworld")));}
     public static Block block(String name,Function<BlockBehaviour.Properties,Block> factory,BlockBehaviour.Properties properties){
         var key=ResourceKey.create(Registries.BLOCK,PowerMod.id(name));
         var block=Registry.register(BuiltInRegistries.BLOCK,key,factory.apply(properties.setId(key)));

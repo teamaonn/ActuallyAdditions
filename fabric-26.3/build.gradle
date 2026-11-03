@@ -3,10 +3,12 @@ version = '0.2.0-dev'
 group = 'de.ellpeck.actuallyadditions'
 base { archivesName = 'actuallyadditions-fabric-26.3' }
 repositories {
+    maven { url = 'https://maven.blamejared.com/'; content { includeGroup 'mezz.jei' } }
     maven { url = 'https://maven.fabricmc.net/' }
     maven { url = 'https://maven.twelveiterations.com/repository/maven-public/' }
 }
 dependencies {
+    compileOnly 'mezz.jei:jei-26.3-fabric-api:31.17.0.108'
     minecraft 'com.mojang:minecraft:26.3'
     implementation 'net.fabricmc:fabric-loader:0.19.5'
     implementation 'net.fabricmc.fabric-api:fabric-api:0.160.7+26.3'

@@ -3,7 +3,9 @@
   "package": "de.ellpeck.actuallyadditions.fabric.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "ExplosionMixin"
+    "ExplosionMixin",
+    "PoolAccess",
+    "ProcessorAccess"
   ],
   "client": [
     "GogglesMixin"

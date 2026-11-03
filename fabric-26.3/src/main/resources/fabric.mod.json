@@ -16,6 +16,9 @@
     ],
     "client": [
       "de.ellpeck.actuallyadditions.fabric.power.PowerClient"
+    ],
+    "jei_mod_plugin": [
+      "de.ellpeck.actuallyadditions.fabric.jei.ActuallyJei"
     ]
   },
   "depends": {

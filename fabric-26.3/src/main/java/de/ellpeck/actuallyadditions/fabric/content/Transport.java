@@ -21,7 +21,7 @@ public final class Transport {
         Node(WorkEntity owner){this.owner=owner;}
         public int range(){return rangeUpgrade?35:15;}
         boolean fluid(){return owner.kind()==WorkKind.FLUID_RELAY;}
-        long available(){long time=owner.getLevel().getGameTime();if(tick!=time){tick=time;used=0;}return Math.max(0,810000-used);}
+        long available(){long time=owner.getLevel().getGameTime();if(tick!=time){tick=time;used=0;}return Math.max(0,81L*PortConfig.number("fluidLaserTransferRate",1,Integer.MAX_VALUE)-used);}
         void spend(long n,TransactionContext tx){available();updateSnapshots(tx);used+=n;}
         @Override protected void onFinalCommit(){lastTransfer=owner.getLevel().getGameTime();}
         @Override protected Long createSnapshot(){return used;}

@@ -1,0 +1,24 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 1,
+      "max": 2
+    }
+  },
+  "gives": {
+    "id": "actuallyadditions:black_quartz"
+  },
+  "max_uses": 16,
+  "xp": 2,
+  "reputation_discount": 0.05,
+  "given_item_modifier": {
+    "type": "minecraft:set_count",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 6,
+      "max": 8
+    }
+  }
+}

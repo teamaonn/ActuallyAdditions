@@ -19,7 +19,7 @@ public final class ItemSlotsMenu extends AbstractContainerMenu {
         for(int r=0;r<3;r++)for(int c=0;c<9;c++)addPlayerSlot(inv,9+r*9+c,8+c*18,102+r*18);for(int c=0;c<9;c++)addPlayerSlot(inv,c,8+c*18,160);
     }
     private void addPlayerSlot(Inventory inv,int i,int x,int y){addSlot(new Slot(inv,i,x,y){@Override public boolean mayPickup(Player p){return getItem()!=owner;}@Override public boolean mayPlace(ItemStack stack){return getItem()!=owner;}});}
-    private boolean allowed(ItemStack stack){return owner.getItem() instanceof DrillItem?stack.getItem() instanceof DrillItem.Upgrade:!(stack.getItem() instanceof SackItem)&&stack!=owner;}
+    private boolean allowed(ItemStack stack){return owner.getItem() instanceof DrillItem?stack.getItem() instanceof DrillItem.Upgrade:!(stack.getItem() instanceof SackItem)&&!(stack.getItem() instanceof Accessories.VoidSack)&&stack!=owner;}
     private void save(){if(owner.isEmpty()||contents==null)return;var list=new ArrayList<ItemStack>();for(int i=0;i<data.get(0);i++)list.add(contents.getItem(i));owner.set(DataComponents.CONTAINER,ItemContainerContents.fromItems(list));inventory.setChanged();}
     @Override public boolean stillValid(Player p){if(owner.isEmpty())return true;for(int i=0;i<inventory.getContainerSize();i++)if(inventory.getItem(i)==owner)return true;return false;}
     @Override public void clicked(int i,int button,ContainerInput type,Player p){if(i>=28&&i<slots.size()&&slots.get(i).getItem()==owner)return;if(type==ContainerInput.SWAP&&button>=0&&button<inventory.getContainerSize()&&inventory.getItem(button)==owner)return;super.clicked(i,button,type,p);}

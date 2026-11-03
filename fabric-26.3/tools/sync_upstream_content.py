@@ -162,3 +162,58 @@ for key,value in original_lang.items():
  text='\n\n'.join(v for k,v in sorted(texts,key=lambda x:int(x[0].rsplit('.',1)[1])))
  chapters.append({'title':value,'text':re.sub(r'<[^>]*>','',text.replace('<n>','\n'))})
 write(assets/'guide.json',chapters)
+
+# Random patches became a single-block feature plus placement modifiers in 26.3.
+for name in sorted(crops):
+ patch=name+'_patch'
+ write(resources/f'data/actuallyadditions/worldgen/feature/{patch}.json',{'type':'minecraft:simple_block','to_place':{'id':'actuallyadditions:'+name,'properties':{'age':'7','persistent':'true'}}})
+ placement=json.loads((generated/f'data/actuallyadditions/worldgen/placed_feature/{patch}.json').read_text())
+ placement['placement'] += [{'type':'minecraft:count','count':10},{'type':'minecraft:offset',**{axis:{'type':'minecraft:trapezoid','min':-spread,'max':spread,'plateau':0} for axis,spread in [('x',7),('y',3),('z',7)]}},{'type':'minecraft:block_predicate_filter','predicate':{'type':'minecraft:matching_block_tag','tag':'minecraft:air'}}]
+ write(resources/f'data/actuallyadditions/worldgen/placed_feature/{patch}.json',placement)
+
+# Native 26.3 loot uses composed predicates/modifiers; the old fields are ignored.
+def loot_native(v):
+ if isinstance(v,list):return [loot_native(x) for x in v]
+ if not isinstance(v,dict):return int(v) if isinstance(v,float) and v.is_integer() else v
+ out={}
+ for k,x in v.items():
+  if k=='functions':out['modifier']=loot_native(x)
+  elif k=='conditions':out['condition']={'type':'minecraft:all_of','terms':loot_native(x)} if len(x)>1 else loot_native(x[0]) if x else []
+  elif k in ['function','condition']:out['type']=x
+  elif k not in ['bonus_rolls']:out[k]=loot_native(x)
+ if out.get('type')=='minecraft:tag':out['items']='#'+out.pop('name')
+ if out.get('type')=='minecraft:block_state_property':
+  out['type']='minecraft:match_block';out['blocks']=out.pop('block');out['state']=out.pop('properties',{})
+ return out
+copy('data/actuallyadditions/loot_table/engineer_house.json')
+for p in (resources/'data/actuallyadditions/loot_table').rglob('*.json'):
+ data=loot_native(json.loads(p.read_text()))
+ # Native slab doubles, which were missing from the upstream generated tables.
+ name=p.stem
+ if name.endswith('_slab'):
+  data['pools'][0]['entries'][0]['modifier']={'type':'minecraft:set_count','count':2,'condition':{'type':'minecraft:match_block','blocks':'actuallyadditions:'+name,'state':{'type':'double'}}}
+ write(p,data)
+# Structure palette states are upgraded by Minecraft's structure data fixer.
+copy('data/actuallyadditions/structure/andrew_period_house.nbt')
+data=json.loads((generated/'data/actuallyadditions/worldgen/processor_list/engineer_house.json').read_text())
+for processor in data['processors']:
+ for rule in processor.get('rules',[]):
+  old=rule['output_state'];rule['output_state']={'id':old['Name'],'properties':{'active':old.get('Properties',{}).get('lit','false')}}
+write(resources/'data/actuallyadditions/worldgen/processor_list/engineer_house.json',data)
+copy('assets/actuallyadditions/textures/entity/villager/profession/engineer.png')
+copy('assets/actuallyadditions/sounds.json')
+for p in (main/'assets/actuallyadditions/sounds').glob('*.ogg'):copy('assets/actuallyadditions/sounds/'+p.name)
+langpath=assets/'lang/en_us.json';write(langpath,{**json.loads(langpath.read_text()),'entity.minecraft.villager.actuallyadditions.engineer':'Engineer'})
+
+def count(a,b):return a if a==b else {'type':'minecraft:uniform','min':a,'max':b}
+trade_data=[
+ (1,False,'black_quartz_ore',1,2,2,3),(1,False,'black_quartz',1,2,6,8),(1,False,'laser_wrench',1,3,1,1),
+ (2,True,'coffee_beans',20,30,1,2),(2,False,'item_interface',3,5,1,1),(2,False,'laser_relay',10,20,1,2),
+ (3,True,'tiny_torch',30,40,1,2),(3,False,'wood_casing',1,2,1,2),
+ (4,False,'iron_casing',3,5,1,2),(4,True,'empowerer',1,1,15,20),(4,False,'laser_relay_extreme',30,40,1,1)]
+trade_ids={i:[] for i in range(1,6)}
+for level,buy,item,a,b,c,d in trade_data:
+ name=f'engineer/{level}/{item}';trade_ids[level].append('actuallyadditions:'+name)
+ data={'wants':{'id':'actuallyadditions:'+item if buy else 'minecraft:emerald','count':count(a,b)},'gives':{'id':'minecraft:emerald' if buy else 'actuallyadditions:'+item},'max_uses':16,'xp':2 if level==1 else 10,'reputation_discount':.05,'given_item_modifier':{'type':'minecraft:set_count','count':count(c,d)}}
+ write(resources/f'data/actuallyadditions/villager_trade/{name}.json',data)
+for level,ids in trade_ids.items():write(resources/f'data/actuallyadditions/trade_set/engineer/level_{level}.json',{'amount':min(2,len(ids)),'trades':ids})

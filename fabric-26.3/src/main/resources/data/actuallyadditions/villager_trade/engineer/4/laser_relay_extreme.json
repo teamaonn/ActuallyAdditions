@@ -1,0 +1,20 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 30,
+      "max": 40
+    }
+  },
+  "gives": {
+    "id": "actuallyadditions:laser_relay_extreme"
+  },
+  "max_uses": 16,
+  "xp": 10,
+  "reputation_discount": 0.05,
+  "given_item_modifier": {
+    "type": "minecraft:set_count",
+    "count": 1
+  }
+}

@@ -48,8 +48,8 @@ public final class Crops {
         Crop(String seed,Properties properties){super(properties);this.seed=seed;registerDefaultState(stateDefinition.any().setValue(AGE,0).setValue(PERSISTENT,false));}
         @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> b){b.add(AGE,PERSISTENT);}
         @Override protected ItemLike getBaseSeedId(){return PowerMod.ITEMS.get(seed);}
-        @Override protected boolean mayPlaceOn(BlockState state,BlockGetter level,BlockPos pos){return state.is(Blocks.FARMLAND);}
-        @Override protected boolean canSurvive(BlockState state,LevelReader level,BlockPos pos){return state.getValue(PERSISTENT)&&!level.getBlockState(pos.below()).isAir()||super.canSurvive(state,level,pos);}
+        @Override protected boolean mayPlaceOn(BlockState state,BlockGetter level,BlockPos pos){return level instanceof net.minecraft.server.level.WorldGenRegion?state.is(net.minecraft.tags.BlockTags.DIRT):state.is(Blocks.FARMLAND);}
+        @Override protected boolean canSurvive(BlockState state,LevelReader level,BlockPos pos){return !(level instanceof net.minecraft.server.level.WorldGenRegion)&&state.getValue(PERSISTENT)&&!level.getBlockState(pos.below()).isAir()||super.canSurvive(state,level,pos);}
         private InteractionResult harvest(BlockState state,Level world,BlockPos pos,Player player){
             if(!isMaxAge(state))return InteractionResult.PASS;
             if(world instanceof ServerLevel server){boolean seedTaken=false;for(var drop:Block.getDrops(state,server,pos,null,player,player.getMainHandItem())){

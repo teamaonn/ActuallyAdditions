@@ -1,0 +1,24 @@
+{
+  "wants": {
+    "id": "actuallyadditions:tiny_torch",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 30,
+      "max": 40
+    }
+  },
+  "gives": {
+    "id": "minecraft:emerald"
+  },
+  "max_uses": 16,
+  "xp": 10,
+  "reputation_discount": 0.05,
+  "given_item_modifier": {
+    "type": "minecraft:set_count",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 1,
+      "max": 2
+    }
+  }
+}

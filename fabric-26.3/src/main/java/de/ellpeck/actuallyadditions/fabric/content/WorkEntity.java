@@ -84,7 +84,8 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         if(!(level instanceof ServerLevel server))return;
         boolean signal=level.hasNeighborSignal(worldPosition),active=false;
         switch(kind()){
-            case DISPLAY,PHANTOM_ITEM,PHANTOM_FLUID -> {}
+            case PHANTOM_ITEM,PHANTOM_FLUID -> {}
+            case DISPLAY -> {if(energy>=60&&items.getFirst().getItem() instanceof Accessories.Blower blower&&blower.clear(server,worldPosition,(int)(level.getGameTime()%Integer.MAX_VALUE),net.fabricmc.fabric.api.entity.FakePlayer.get(server))){energy-=60;setChanged();active=true;}}
             case SHOCK,LAMP_CONTROLLER,FIREWORK -> {active=lighting.tick(signal);}
             case ITEM_RELAY,ADVANCED_ITEM_RELAY,FLUID_RELAY,ITEM_INTERFACE,HOPPING_INTERFACE -> Transport.tick(this);
             case PLAYER_INTERFACE -> {var p=linkedPlayer();if(p!=null)for(int i=0;i<p.getInventory().getContainerSize()&&energy>0;i++){int n=EnergyItem.insert(p.getInventory().getItem(i),energy,false);if(n>0){energy-=n;setChanged();active=true;}}}
@@ -182,13 +183,10 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         int range=upgradedRange(2),width=range*2+1;digIndex=Math.floorMod(digIndex,width*width);
         var pos=new BlockPos(worldPosition.getX()+digIndex%width-range,digY,worldPosition.getZ()+digIndex/width-range);
         if(!level.hasChunkAt(pos))return false;var state=level.getBlockState(pos);int cost=650*(onlyOres?3:1);boolean mined=false;
-        boolean ore=state.is(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK,net.minecraft.resources.Identifier.parse("c:ores")));
-        if(!state.isAir()&&(!onlyOres||ore)&&state.getDestroySpeed(level,pos)>=0&&level.getBlockEntity(pos)==null){
-            if(energy<cost)return false;var fake=net.fabricmc.fabric.api.entity.FakePlayer.get((ServerLevel)level);
-            if(net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level,fake,pos,state,null)){
-                var drops=Block.getDrops(state,(ServerLevel)level,pos,null);if(!insertAll(drops,true))return false;
-                if(level.setBlockAndUpdate(pos,Blocks.AIR.defaultBlockState())){insertAll(drops,false);energy-=cost;mined=true;}
-            }
+        String blockId=net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();boolean denied=PortConfig.contains("machineSettings","verticalDiggerBlacklist",blockId);
+        boolean ore=PortConfig.contains("machineSettings","verticalDiggerExtraWhitelist",blockId)||state.is(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK,net.minecraft.resources.Identifier.parse("c:ores")));
+        if(!state.isAir()&&!denied&&(!onlyOres||ore)&&state.getDestroySpeed(level,pos)>=0){
+            if(energy<cost)return false;if(harvest(pos,state)){energy-=cost;mined=true;}
         }
         if(++digIndex>=width*width){digIndex=0;digY--;}setChanged();return mined;
     }
@@ -211,8 +209,8 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         return stack.isEmpty();
     }
     public boolean farm(){
-        int index=farmIndex;farmIndex=(farmIndex+1)%81;
-        var side=getBlockState().getValue(PowerBlock.FACING);var center=worldPosition.relative(side,5);var pos=center.offset(index%9-4,0,index/9-4);
+        int area=PortConfig.area("farmerArea"),radius=area/2;int index=Math.floorMod(farmIndex,area*area);farmIndex=(index+1)%(area*area);
+        var side=getBlockState().getValue(PowerBlock.FACING);var center=worldPosition.relative(side,radius+1);var pos=center.offset(index%area-radius,0,index/area-radius);
         if(!level.hasChunkAt(pos))return false;var state=level.getBlockState(pos);var block=state.getBlock();
         boolean crop=block instanceof CropBlock c&&c.isMaxAge(state),wart=block instanceof NetherWartBlock&&state.getValue(NetherWartBlock.AGE)==3;
         boolean fruit=block==Blocks.MELON||block==Blocks.PUMPKIN;
@@ -307,7 +305,7 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         }
     }
     public boolean generates(){return kind()==WorkKind.HEAT||kind()==WorkKind.LEAF||kind()==WorkKind.BIO||kind()==WorkKind.OIL;}
-    private int outputRate(){return switch(kind()){case HEAT->80;case LEAF->450;case BIO->800;case OIL->500;default->1000;};}
+    private int outputRate(){return switch(kind()){case HEAT->80;case LEAF->450;case BIO->800;case OIL->PortConfig.number("oilGeneratorTransfer",100,Integer.MAX_VALUE);default->1000;};}
     private boolean pushEnergy(){
         boolean active=false;
         for(var side:Direction.values()){
@@ -332,12 +330,12 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
             List<BlockPos> heat=new ArrayList<>();
             for(var side:Direction.values())if(side!=Direction.UP){var p=worldPosition.relative(side);if(level.hasChunkAt(p)&&(level.getFluidState(p).is(net.minecraft.tags.FluidTags.LAVA)||level.getBlockState(p).getBlock() instanceof MagmaBlock))heat.add(p);}
             if(heat.size()>=4){energy+=40;active=true;if(++heatAge>=1000){heatAge=0;if(level.getRandom().nextInt(200)==0)level.setBlockAndUpdate(heat.get(level.getRandom().nextInt(heat.size())),Blocks.AIR.defaultBlockState());}}
-        }else if(enabled&&kind()==WorkKind.LEAF&&++counter>=5){
-            counter=0;
-            if(energy+300<=capacity()){
+        }else if(enabled&&kind()==WorkKind.LEAF&&++counter>=PortConfig.number("leafGeneratorCooldown",1,Integer.MAX_VALUE)){
+            counter=0;int production=PortConfig.number("leafGeneratorCPPerLeaf",1,Integer.MAX_VALUE);int radius=PortConfig.area("leafGeneratorArea")/2;
+            if((long)energy+production<=capacity()){
                 List<BlockPos> leaves=new ArrayList<>();
-                for(var p:BlockPos.betweenClosed(worldPosition.offset(-7,-7,-7),worldPosition.offset(7,7,7)))if(level.hasChunkAt(p)&&level.getBlockState(p).is(net.minecraft.tags.BlockTags.LEAVES))leaves.add(p.immutable());
-                if(!leaves.isEmpty()){var p=leaves.get(level.getRandom().nextInt(leaves.size()));level.levelEvent(2001,p,Block.getId(level.getBlockState(p)));level.setBlockAndUpdate(p,Blocks.AIR.defaultBlockState());energy+=300;active=true;}
+                for(var p:BlockPos.betweenClosed(worldPosition.offset(-radius,-radius,-radius),worldPosition.offset(radius,radius,radius)))if(level.hasChunkAt(p)&&level.getBlockState(p).is(net.minecraft.tags.BlockTags.LEAVES))leaves.add(p.immutable());
+                if(!leaves.isEmpty()){var p=leaves.get(level.getRandom().nextInt(leaves.size()));level.levelEvent(2001,p,Block.getId(level.getBlockState(p)));level.setBlockAndUpdate(p,Blocks.AIR.defaultBlockState());energy+=production;active=true;}
             }
         }
         if(active)setChanged();return active;
@@ -370,13 +368,17 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         if(kind()==WorkKind.LONG_BREAKER&&energy<40)return false;
         for(int i=1;i<=range;i++){
             var p=phantomWork()?front:worldPosition.relative(side,i);if(!level.hasChunkAt(p))break;var state=level.getBlockState(p);
-            if(state.isAir()||state.getDestroySpeed(level,p)<0||level.getBlockEntity(p)!=null)continue;
-            var fake=net.fabricmc.fabric.api.entity.FakePlayer.get((ServerLevel)level);
-            if(!net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level,fake,p,state,null))continue;
-            var drops=Block.getDrops(state,(ServerLevel)level,p,null);
-            if(!insertAll(drops,true))continue;
-            if(level.setBlockAndUpdate(p,Blocks.AIR.defaultBlockState())){insertAll(drops,false);level.levelEvent(2001,p,Block.getId(state));if(kind()==WorkKind.LONG_BREAKER)energy-=5;active=true;}
+            if(state.isAir()||state.getDestroySpeed(level,p)<0)continue;
+            if(harvest(p,state)){if(kind()==WorkKind.LONG_BREAKER)energy-=5;active=true;}
         }if(active)setChanged();return active;
+    }
+    private boolean harvest(BlockPos pos,BlockState state){
+        var server=(ServerLevel)level;var fake=net.fabricmc.fabric.api.entity.FakePlayer.get(server);var entity=level.getBlockEntity(pos);
+        if(!net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level,fake,pos,state,entity))return false;
+        var drops=Block.getDrops(state,server,pos,entity,fake,ItemStack.EMPTY);if(!insertAll(drops,true))return false;
+        if(!level.setBlockAndUpdate(pos,Blocks.AIR.defaultBlockState()))return false;
+        insertAll(drops,false);state.spawnAfterBreak(server,pos,ItemStack.EMPTY,true);level.levelEvent(2001,pos,Block.getId(state));
+        net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.AFTER.invoker().afterBlockBreak(level,fake,pos,state,entity);return true;
     }
     private boolean canFit(int lane,List<ItemStack> rewards){
         ItemStack a=items.get(lane*3+1).copy(),b=items.get(lane*3+2).copy();
@@ -504,9 +506,12 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
     @Override public boolean canPlaceItem(int slot,ItemStack stack){
         return switch(kind()){case DISPLAY,EMPOWERER->slot==0;case ENERGIZER,ENERVATOR,BATTERY_BOX->slot==0&&stack.getItem() instanceof EnergyItem;case PHANTOM_ITEM,PHANTOM_FLUID,PHANTOM_ENERGY,PHANTOM_REDSTONE,SHOCK,LAMP_CONTROLLER,FIREWORK,ITEM_RELAY,FLUID_RELAY,ITEM_INTERFACE,HOPPING_INTERFACE,PLAYER_INTERFACE,HEAT,LEAF,OIL,FERMENT,LAVA,FLUID_COLLECTOR,FLUID_PLACER->false;case PHANTOM_BREAKER,PHANTOM_PLACER->slot<9;case ADVANCED_ITEM_RELAY->slot<2&&stack.getItem() instanceof FilterItem;case COFFEE->slot==0?stack.is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("coffee_beans")):slot==1?stack.is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("empty_cup")):slot>=3&&slot<11&&Processing.find(level,"coffee_ingredient",stack).isPresent();case RECONSTRUCTOR->slot==0&&stack.getItem() instanceof Lenses;case DIGGER->slot<9;case COLLECTOR->slot==6&&stack.getItem() instanceof FilterItem;case FARMER->slot<6&&seed(stack);case FEEDER->slot==0;case XP->slot==1&&stack.is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("solidified_experience"));case PRESS->slot==0&&Processing.find(level,"pressing",stack).isPresent();case BIO->slot<8&&bioFuel(stack);case BREAKER,PLACER,DROPPER,LONG_BREAKER->slot<9;case FURNACE,DOUBLE_CRUSHER->slot==0||slot==3;case CRUSHER->slot==0;};
     }
-    @Override public int[] getSlotsForFace(Direction side){if(kind()==WorkKind.COFFEE)return side==Direction.DOWN?new int[]{2,3,4,5,6,7,8,9,10}:new int[]{0,1,3,4,5,6,7,8,9,10};if(phantomWork())return java.util.stream.IntStream.range(0,9).toArray();if(kind()==WorkKind.DIGGER)return java.util.stream.IntStream.range(0,9).toArray();if(kind()==WorkKind.COLLECTOR)return new int[]{0,1,2,3,4,5};if(kind()==WorkKind.FARMER)return side==Direction.DOWN?new int[]{6,7,8,9,10,11}:new int[]{0,1,2,3,4,5};if(kind()==WorkKind.FEEDER)return new int[]{0};if(kind()==WorkKind.XP)return side==Direction.DOWN?new int[]{0}:new int[]{1};if(kind()==WorkKind.DISPLAY||kind()==WorkKind.EMPOWERER||kind()==WorkKind.BATTERY_BOX)return new int[]{0};if(kind()==WorkKind.ENERGIZER||kind()==WorkKind.ENERVATOR)return side==Direction.DOWN?new int[]{1}:new int[]{0};if(kind()==WorkKind.BIO||kind()==WorkKind.BREAKER||kind()==WorkKind.PLACER||kind()==WorkKind.DROPPER||kind()==WorkKind.LONG_BREAKER)return java.util.stream.IntStream.range(0,kind().slots).toArray();return side==Direction.DOWN?new int[]{1,2,4,5}:new int[]{0,3};}
+    @Override public int[] getSlotsForFace(Direction side){if(kind().slots==0)return new int[0];if(kind()==WorkKind.PRESS||kind()==WorkKind.RECONSTRUCTOR)return new int[]{0};if(kind()==WorkKind.COFFEE)return side==Direction.DOWN?new int[]{2,3,4,5,6,7,8,9,10}:new int[]{0,1,3,4,5,6,7,8,9,10};if(phantomWork())return java.util.stream.IntStream.range(0,9).toArray();if(kind()==WorkKind.DIGGER)return java.util.stream.IntStream.range(0,9).toArray();if(kind()==WorkKind.COLLECTOR)return new int[]{0,1,2,3,4,5};if(kind()==WorkKind.FARMER)return side==Direction.DOWN?new int[]{6,7,8,9,10,11}:new int[]{0,1,2,3,4,5};if(kind()==WorkKind.FEEDER)return new int[]{0};if(kind()==WorkKind.XP)return side==Direction.DOWN?new int[]{0}:new int[]{1};if(kind()==WorkKind.DISPLAY||kind()==WorkKind.EMPOWERER||kind()==WorkKind.BATTERY_BOX)return new int[]{0};if(kind()==WorkKind.ENERGIZER||kind()==WorkKind.ENERVATOR)return side==Direction.DOWN?new int[]{1}:new int[]{0};if(kind()==WorkKind.BIO||kind()==WorkKind.BREAKER||kind()==WorkKind.PLACER||kind()==WorkKind.DROPPER||kind()==WorkKind.LONG_BREAKER)return java.util.stream.IntStream.range(0,kind().slots).toArray();return java.util.Arrays.stream(side==Direction.DOWN?new int[]{1,2,4,5}:new int[]{0,3}).filter(i->i<kind().slots).toArray();}
     @Override public boolean canPlaceItemThroughFace(int slot,ItemStack stack,Direction side){return kind()!=WorkKind.PHANTOM_BREAKER&&kind()!=WorkKind.DIGGER&&kind()!=WorkKind.BREAKER&&kind()!=WorkKind.LONG_BREAKER&&side!=Direction.DOWN&&canPlaceItem(slot,stack);}
     @Override public boolean canTakeItemThroughFace(int slot,ItemStack stack,Direction side){if(kind()==WorkKind.COFFEE)return slot==2||slot>=3&&Processing.find(level,"coffee_ingredient",stack).isEmpty();if(phantomWork()||kind()==WorkKind.DIGGER)return true;if(kind()==WorkKind.COLLECTOR)return slot<6;if(kind()==WorkKind.FARMER)return slot>=6&&slot<12;if(kind()==WorkKind.BIO||kind()==WorkKind.FEEDER)return false;if(kind()==WorkKind.XP)return slot==0;if(kind()==WorkKind.BREAKER||kind()==WorkKind.PLACER||kind()==WorkKind.DROPPER||kind()==WorkKind.LONG_BREAKER)return true;return side==Direction.DOWN&&((kind()==WorkKind.DISPLAY||kind()==WorkKind.EMPOWERER||kind()==WorkKind.BATTERY_BOX)?slot==0:(slot==1||slot==2||slot==4||slot==5));}
+    @Override public net.minecraft.nbt.CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider lookup){return saveWithoutMetadata(lookup);}
+    @Override public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getUpdatePacket(){return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);}
+    @Override public void setChanged(){super.setChanged();if(level instanceof ServerLevel&&(kind()==WorkKind.DISPLAY||kind()==WorkKind.EMPOWERER||kind()==WorkKind.BATTERY_BOX))level.sendBlockUpdated(worldPosition,getBlockState(),getBlockState(),2);}
     @Override public void preRemoveSideEffects(BlockPos pos,BlockState state){if(level instanceof ServerLevel){if(isTransportRelay()){network.unlink();if(network.rangeUpgrade)Block.popResource(level,pos,new ItemStack(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("laser_upgrade_range")));if(network.invisible)Block.popResource(level,pos,new ItemStack(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("laser_upgrade_invisibility")));}for(var stack:items)if(!stack.isEmpty())Block.popResource(level,pos,stack.copy());for(var queue:pending)for(var stack:queue)if(!stack.isEmpty())Block.popResource(level,pos,stack.copy());}items.clear();for(var queue:pending)queue.clear();super.preRemoveSideEffects(pos,state);}
     @Override protected void saveAdditional(ValueOutput out){
         super.saveAdditional(out);if(kind()==WorkKind.FIREWORK)lighting.save(out.child("lighting"));if(isTransportRelay())network.save(out.child("network"));if(playerId!=null)out.putString("linked_player",playerId.toString());out.putInt("energy",energy);inputTank.save(out.child("tank_input"));outputTank.save(out.child("tank_output"));out.putInt("counter",counter);out.putInt("burn",burn);out.putInt("production",production);out.putInt("heatAge",heatAge);out.putLong("xp_points",experience);out.putInt("farm_index",farmIndex);out.putInt("coffee_cache",coffeeCache);out.putBoolean("brewing",brewing);out.putInt("dig_index",digIndex);out.putInt("dig_y",digY);out.putBoolean("only_ores",onlyOres);if(bound!=null)out.store("bound",BlockPos.CODEC,bound);out.putBoolean("pulse",pulseMode);out.putBoolean("signal",lastSignal);
@@ -514,7 +519,7 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         for(int lane=0;lane<2;lane++){out.putInt("progress_"+lane,progress[lane]);out.putString("job_"+lane,jobKey[lane]);if(!jobInput[lane].isEmpty())out.store("input_"+lane,ItemStack.CODEC,jobInput[lane]);out.store("pending_"+lane,ItemStack.CODEC.listOf(),pending[lane]);}
     }
     @Override protected void loadAdditional(ValueInput in){
-        super.loadAdditional(in);in.child("lighting").ifPresent(lighting::load);in.child("network").ifPresent(network::load);try{playerId=java.util.UUID.fromString(in.getStringOr("linked_player",""));}catch(IllegalArgumentException ignored){playerId=null;}coffeeCache=Math.clamp(in.getIntOr("coffee_cache",0),0,300);brewing=in.getBooleanOr("brewing",false);bound=in.read("bound",BlockPos.CODEC).orElse(null);if(level!=null&&!in.getStringOr("bound_dimension",level.dimension().identifier().toString()).equals(level.dimension().identifier().toString()))bound=null;digIndex=Math.max(0,in.getIntOr("dig_index",0));digY=in.getIntOr("dig_y",Integer.MIN_VALUE);onlyOres=in.getBooleanOr("only_ores",false);farmIndex=Math.clamp(in.getIntOr("farm_index",0),0,80);experience=Math.clamp(in.getLongOr("xp_points",0),0,Integer.MAX_VALUE);in.child("tank_input").ifPresent(inputTank::load);in.child("tank_output").ifPresent(outputTank::load);energy=Math.clamp(in.getIntOr("energy",0),0,capacity());counter=Math.clamp(in.getIntOr("counter",0),0,100);burn=Math.clamp(in.getIntOr("burn",0),0,120000);production=Math.clamp(in.getIntOr("production",0),0,256);heatAge=Math.clamp(in.getIntOr("heatAge",0),0,1000);pulseMode=in.getBooleanOr("pulse",false);lastSignal=in.getBooleanOr("signal",false);
+        super.loadAdditional(in);in.child("lighting").ifPresent(lighting::load);in.child("network").ifPresent(network::load);try{playerId=java.util.UUID.fromString(in.getStringOr("linked_player",""));}catch(IllegalArgumentException ignored){playerId=null;}coffeeCache=Math.clamp(in.getIntOr("coffee_cache",0),0,300);brewing=in.getBooleanOr("brewing",false);bound=in.read("bound",BlockPos.CODEC).orElse(null);if(level!=null&&!in.getStringOr("bound_dimension",level.dimension().identifier().toString()).equals(level.dimension().identifier().toString()))bound=null;digIndex=Math.max(0,in.getIntOr("dig_index",0));digY=in.getIntOr("dig_y",Integer.MIN_VALUE);onlyOres=in.getBooleanOr("only_ores",false);farmIndex=Math.floorMod(in.getIntOr("farm_index",0),PortConfig.area("farmerArea")*PortConfig.area("farmerArea"));experience=Math.clamp(in.getLongOr("xp_points",0),0,Integer.MAX_VALUE);in.child("tank_input").ifPresent(inputTank::load);in.child("tank_output").ifPresent(outputTank::load);energy=Math.clamp(in.getIntOr("energy",0),0,capacity());counter=Math.clamp(in.getIntOr("counter",0),0,100);burn=Math.clamp(in.getIntOr("burn",0),0,120000);production=Math.clamp(in.getIntOr("production",0),0,256);heatAge=Math.clamp(in.getIntOr("heatAge",0),0,1000);pulseMode=in.getBooleanOr("pulse",false);lastSignal=in.getBooleanOr("signal",false);
         for(int i=0;i<12;i++)items.set(i,in.read("slot_"+i,ItemStack.CODEC).orElse(ItemStack.EMPTY));
         for(int lane=0;lane<2;lane++){progress[lane]=Math.clamp(in.getIntOr("progress_"+lane,0),0,120000);jobKey[lane]=in.getStringOr("job_"+lane,"");jobInput[lane]=in.read("input_"+lane,ItemStack.CODEC).orElse(ItemStack.EMPTY);pending[lane].clear();pending[lane].addAll(in.read("pending_"+lane,ItemStack.CODEC.listOf()).orElse(List.of()));}
     }

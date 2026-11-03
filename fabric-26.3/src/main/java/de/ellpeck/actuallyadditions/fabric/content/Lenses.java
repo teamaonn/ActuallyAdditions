@@ -16,7 +16,7 @@ public final class Lenses extends Item {
     public Lenses(String kind,int distance,int minimum,Properties p){super(p.stacksTo(1));this.kind=kind;this.distance=distance;this.minimum=minimum;}
     public static void initialize(){
         Content.item("lens_of_color",p->new Lenses("color",10,200,p),new Item.Properties());
-        Content.item("lens_of_the_miner",p->new Lenses("mining",10,60000,p),new Item.Properties());
+        Content.item("lens_of_the_miner",p->new Lenses("mining",10,PortConfig.number("minerLensEnergy",1,Integer.MAX_VALUE),p),new Item.Properties());
         Content.item("lens_of_certain_death",p->new Lenses("death",15,350,p),new Item.Properties());
         Content.item("lens_of_the_killer",p->new Lenses("killer",15,2500,p),new Item.Properties());
         Content.item("lens_of_detonation",p->new Lenses("detonation",30,250000,p),new Item.Properties());
@@ -27,8 +27,8 @@ public final class Lenses extends Item {
             case "death","killer" -> {var fake=net.fabricmc.fabric.api.entity.FakePlayer.get(level);for(var entity:level.getEntitiesOfClass(LivingEntity.class,beam))if(owner.spend(minimum))entity.hurtServer(level,kind.equals("killer")?level.damageSources().playerAttack(fake):level.damageSources().magic(),20);}
             case "detonation" -> {if(owner.spend(250000))level.explode(null,end.getX()+.5,end.getY()+.5,end.getZ()+.5,10F,true,Level.ExplosionInteraction.NONE);}
             case "mining" -> {
-                if(level.getBlockEntity(end)!=null)return;var input=new ItemStack(level.getBlockState(end).getBlock());var recipes=Processing.all(level,"mining_lens").stream().filter(r->Processing.matches(r.data().get("ingredient"),input)).toList();int total=recipes.stream().mapToInt(r->r.number("weight",0)).sum();if(total<=0||owner.energy()<60000)return;int roll=level.getRandom().nextInt(total);
-                for(var recipe:recipes){roll-=recipe.number("weight",0);if(roll>=0)continue;var result=Processing.stack(level,recipe.data().get("result"));if(result.getItem() instanceof BlockItem block&&level.setBlockAndUpdate(end,block.getBlock().defaultBlockState()))owner.spend(60000);break;}
+                if(level.getBlockEntity(end)!=null)return;var input=new ItemStack(level.getBlockState(end).getBlock());var recipes=Processing.all(level,"mining_lens").stream().filter(r->Processing.matches(r.data().get("ingredient"),input)).toList();int total=recipes.stream().mapToInt(r->r.number("weight",0)).sum();if(total<=0||owner.energy()<minimum)return;int roll=level.getRandom().nextInt(total);
+                for(var recipe:recipes){roll-=recipe.number("weight",0);if(roll>=0)continue;var result=Processing.stack(level,recipe.data().get("result"));if(result.getItem() instanceof BlockItem block&&level.setBlockAndUpdate(end,block.getBlock().defaultBlockState()))owner.spend(minimum);break;}
             }
             case "color" -> {
                 if(level.getBlockEntity(end)==null){var recipe=Processing.find(level,"color_change",new ItemStack(level.getBlockState(end).getBlock()));if(recipe.isPresent()&&owner.energy()>=200){var result=Processing.stack(level,recipe.get().data().get("result"));if(result.getItem() instanceof BlockItem block&&level.setBlockAndUpdate(end,block.getBlock().defaultBlockState()))owner.spend(200);}}
