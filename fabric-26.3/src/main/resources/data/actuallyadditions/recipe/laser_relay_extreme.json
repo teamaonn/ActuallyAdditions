@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "RLR",
+    " D "
+  ],
+  "key": {
+    "D": "minecraft:diamond_block",
+    "R": "minecraft:redstone_block",
+    "L": "actuallyadditions:laser_relay_advanced"
+  },
+  "result": {
+    "id": "actuallyadditions:laser_relay_extreme",
+    "count": 1
+  }
+}

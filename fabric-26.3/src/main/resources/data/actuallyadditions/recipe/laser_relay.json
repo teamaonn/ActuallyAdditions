@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OBO",
+    "RGR",
+    "OBO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "B": "minecraft:redstone_block",
+    "R": "minecraft:redstone",
+    "G": "minecraft:gold_ingot"
+  },
+  "result": {
+    "id": "actuallyadditions:laser_relay",
+    "count": 4
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CIC",
+    "CFC",
+    "CRC"
+  ],
+  "key": {
+    "C": "minecraft:cobblestone",
+    "I": "minecraft:iron_ingot",
+    "F": "minecraft:furnace",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "actuallyadditions:coal_generator",
+    "count": 1
+  }
+}

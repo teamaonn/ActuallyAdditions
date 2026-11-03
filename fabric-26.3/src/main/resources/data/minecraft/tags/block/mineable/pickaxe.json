@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "actuallyadditions:coal_generator",
+    "actuallyadditions:laser_relay",
+    "actuallyadditions:laser_relay_advanced",
+    "actuallyadditions:laser_relay_extreme"
+  ]
+}

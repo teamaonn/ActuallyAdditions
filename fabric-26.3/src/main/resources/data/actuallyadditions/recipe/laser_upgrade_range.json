@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Q ",
+    "RER",
+    " Q "
+  ],
+  "key": {
+    "Q": "minecraft:quartz",
+    "R": "minecraft:redstone",
+    "E": "minecraft:ender_pearl"
+  },
+  "result": {
+    "id": "actuallyadditions:laser_upgrade_range",
+    "count": 1
+  }
+}

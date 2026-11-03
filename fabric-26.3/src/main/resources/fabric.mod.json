@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "actuallyadditions",
+  "version": "${version}",
+  "name": "Actually Additions: Fabric Power",
+  "description": "Fabric 26.3 power stage: coal generator, energy laser relays and linking wrench. Other Actually Additions machines are not included yet.",
+  "authors": ["Ellpeck and Actually Additions contributors", "Joshua (Fabric port)"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["de.ellpeck.actuallyadditions.fabric.power.PowerMod"],
+    "client": ["de.ellpeck.actuallyadditions.fabric.power.PowerClient"]
+  },
+  "depends": {"fabricloader": ">=0.19.5", "minecraft": "26.3", "java": ">=25", "fabric-api": ">=0.160.7", "balm-fabric": ">=26.3.0.1"}
+}

@@ -1,0 +1,56 @@
+{
+  "variants": {
+    "facing=up,active=false": {
+      "model": "actuallyadditions:block/laser_relay_extreme"
+    },
+    "facing=up,active=true": {
+      "model": "actuallyadditions:block/laser_relay_extreme"
+    },
+    "facing=down,active=false": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 180
+    },
+    "facing=down,active=true": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 180
+    },
+    "facing=north,active=false": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 90
+    },
+    "facing=north,active=true": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 90
+    },
+    "facing=east,active=false": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,active=true": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 90,
+      "y": 90
+    },
+    "facing=south,active=false": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,active=true": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,active=false": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,active=true": {
+      "model": "actuallyadditions:block/laser_relay_extreme",
+      "x": 90,
+      "y": 270
+    }
+  }
+}
