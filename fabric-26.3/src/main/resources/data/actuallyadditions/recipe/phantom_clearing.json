@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "actuallyadditions:phantom_connector"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:phantom_connector"
+  }
+}

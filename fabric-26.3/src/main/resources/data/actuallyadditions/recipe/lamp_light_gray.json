@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "actuallyadditions:black_quartz",
+    "C": "actuallyadditions:palis_crystal",
+    "D": "minecraft:light_gray_dye",
+    "G": "minecraft:glowstone"
+  },
+  "pattern": [
+    "GCG",
+    "DBD",
+    "GCG"
+  ],
+  "result": {
+    "count": 6,
+    "id": "actuallyadditions:lamp_light_gray"
+  }
+}

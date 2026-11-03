@@ -1,0 +1,12 @@
+{
+  "type": "actuallyadditions:copy_nbt_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "#actuallyadditions:drills",
+    "#c:dyes/purple"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:drill_purple"
+  }
+}

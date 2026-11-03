@@ -1,0 +1,10 @@
+{
+  "type": "actuallyadditions:laser",
+  "energy": 5000,
+  "ingredient": {
+    "item": "actuallyadditions:lens_of_detonation"
+  },
+  "result": {
+    "id": "actuallyadditions:lens_of_certain_death"
+  }
+}

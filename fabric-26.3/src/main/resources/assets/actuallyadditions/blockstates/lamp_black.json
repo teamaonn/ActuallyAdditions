@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "actuallyadditions:block/lamp_black"
+    },
+    "active=true": {
+      "model": "actuallyadditions:block/lamp_black_on"
+    }
+  }
+}

@@ -111,4 +111,56 @@ public final class CoreTests {
         check(result.is(PowerMod.ITEMS.get("double_battery"))&&EnergyItem.energy(result)==123456&&EnergyItem.enabled(result),"Native battery upgrade recipe retains charge and enabled state");h.succeed();
     }
 
+    @GameTest public void farmerPlantsHarvestsAndWaitsForStorage(GameTestHelper h){
+        var e=machine(h,WorkKind.FARMER,1,2,1);var soil=e.getBlockPos().east(1).north(4).below();var crop=soil.above();
+        h.getLevel().setBlock(soil,Blocks.DIRT.defaultBlockState(),3);e.setItem(0,new ItemStack(Items.WHEAT_SEEDS,2));e.getEnergyStorage().setEnergy(100000);e.farm();
+        check(h.getLevel().getBlockState(soil).is(Blocks.FARMLAND)&&h.getLevel().getBlockState(crop).is(Blocks.WHEAT)&&e.getItem(0).getCount()==1,"Farmer tills and plants its first square");check(e.energy()==99300,"Tilling and planting each cost 350 energy");
+        h.getLevel().setBlock(crop,Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE,7),3);for(int i=0;i<81;i++)e.farm();
+        check(h.getLevel().isEmptyBlock(crop)&&e.getItem(6).is(Items.WHEAT),"Farmer harvests mature crops into output storage");check(e.energy()==99050,"Crop harvest costs 250 energy");h.succeed();
+    }
+    @GameTest public void collectorRespectsReusableFilterWithoutConsumingIt(GameTestHelper h){
+        var e=machine(h,WorkKind.COLLECTOR,1,2,1);var filter=item("filter");filter.set(net.minecraft.core.component.DataComponents.CONTAINER,net.minecraft.world.item.component.ItemContainerContents.fromItems(List.of(new ItemStack(Items.DIAMOND))));e.setItem(6,filter);
+        var p=e.getBlockPos();var diamond=new ItemEntity(h.getLevel(),p.getX()+1.5,p.getY()+.5,p.getZ()+.5,new ItemStack(Items.DIAMOND,3));var dirt=new ItemEntity(h.getLevel(),p.getX()+1.5,p.getY()+.5,p.getZ()+.5,new ItemStack(Items.DIRT));h.getLevel().addFreshEntity(diamond);h.getLevel().addFreshEntity(dirt);
+        e.collect();check(!diamond.isAlive()&&dirt.isAlive()&&e.getItem(0).getCount()==3,"Collector accepts only matching filtered items");check(e.getItem(6)==filter,"Filter remains reusable and never enters the output");h.succeed();
+    }
+    @GameTest public void fluidWorldMachinesAndLavaFactoryConserveResources(GameTestHelper h){
+        var collect=machine(h,WorkKind.FLUID_COLLECTOR,1,2,1);var p=collect.getBlockPos().east();h.getLevel().setBlock(p,Blocks.WATER.defaultBlockState(),3);check(collect.fluidWorld()&&collect.outputTank.amount==81000&&h.getLevel().isEmptyBlock(p),"Collector takes one source bucket");
+        var place=machine(h,WorkKind.FLUID_PLACER,5,2,1);try(var tx=net.fabricmc.fabric.api.transfer.v1.transaction.Transaction.openOuter()){net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil.move(collect.outputTank,place.inputTank,r->true,81000,tx);tx.commit();}
+        check(place.fluidWorld()&&place.inputTank.amount==0&&h.getLevel().getFluidState(place.getBlockPos().east()).isSource(),"Placer consumes one stored bucket to place one source");check(!place.fluidWorld(),"Empty tank cannot create another source");
+        var lava=machine(h,WorkKind.LAVA,9,2,1);lava.getEnergyStorage().setEnergy(300000);for(var d:List.of(Direction.NORTH,Direction.SOUTH,Direction.EAST,Direction.WEST))h.getLevel().setBlock(lava.getBlockPos().above().relative(d),Content.BLOCKS.get("lava_factory_casing").defaultBlockState(),3);
+        run(lava,200);check(h.getLevel().getBlockState(lava.getBlockPos().above()).is(Blocks.LAVA)&&lava.energy()==150000,"Complete Lava Factory creates one source for 150000 energy after 200 ticks");h.succeed();
+    }
+
+    @GameTest public void phantomStorageResolvesLoadedTargetAndStopsOutOfRange(GameTestHelper h){
+        var e=machine(h,WorkKind.PHANTOM_ITEM,1,2,1);var chest=e.getBlockPos().east(4);h.getLevel().setBlock(chest,Blocks.CHEST.defaultBlockState(),3);var inventory=(net.minecraft.world.Container)h.getLevel().getBlockEntity(chest);inventory.setItem(0,new ItemStack(Items.DIAMOND,3));e.bound=chest;
+        var proxy=new RemoteStorage<net.fabricmc.fabric.api.transfer.v1.item.ItemVariant>(() ->e.remoteItems(Direction.UP));
+        try(var tx=net.fabricmc.fabric.api.transfer.v1.transaction.Transaction.openOuter()){check(proxy.extract(net.fabricmc.fabric.api.transfer.v1.item.ItemVariant.of(Items.DIAMOND),1,tx)==1,"Phantom itemface exposes bound chest");tx.commit();}
+        check(inventory.getItem(0).getCount()==2,"Phantom extraction changes actual remote inventory exactly once");e.bound=chest.east(100);
+        try(var tx=net.fabricmc.fabric.api.transfer.v1.transaction.Transaction.openOuter()){check(proxy.extract(net.fabricmc.fabric.api.transfer.v1.item.ItemVariant.of(Items.DIAMOND),1,tx)==0,"Cached remote storage must stop after the binding moves out of range");tx.commit();}
+        var breaker=machine(h,WorkKind.PHANTOM_BREAKER,9,2,1);breaker.bound=breaker.getBlockPos().east(2);h.getLevel().setBlock(breaker.bound,Blocks.DIRT.defaultBlockState(),3);check(breaker.worldWork()&&breaker.getItem(0).is(Items.DIRT)&&h.getLevel().isEmptyBlock(breaker.bound),"Phantom Breaker harvests its bound block");h.succeed();
+    }
+    @GameTest public void drillRecolorKeepsEnergyAndInstalledUpgrades(GameTestHelper h){
+        var drill=item("drill_white");EnergyItem.set(drill,100000);drill.set(net.minecraft.core.component.DataComponents.CONTAINER,net.minecraft.world.item.component.ItemContainerContents.fromItems(List.of(item("drill_upgrade_speed"),item("drill_upgrade_speed_ii"),item("drill_upgrade_three_by_three"))));
+        check(DrillItem.cost(drill)==235,"Drill energy use composes speed and area upgrades");
+        var dye=BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.parse("minecraft:black_dye"));var grid=net.minecraft.world.item.crafting.CraftingInput.of(2,1,List.of(drill,new ItemStack(dye)));
+        var recipe=h.getLevel().getServer().getRecipeManager().getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,grid,h.getLevel()).orElseThrow();var result=recipe.value().assemble(grid);
+        check(result.is(PowerMod.ITEMS.get("drill_black"))&&EnergyItem.energy(result)==100000&&DrillItem.has(result,"speed_ii")&&DrillItem.has(result,"three_by_three"),"Recoloring retains energy and the real installed upgrade inventory");h.succeed();
+    }
+    @GameTest public void coffeeBrewsNativePotionEffectsForExactResources(GameTestHelper h){
+        var e=machine(h,WorkKind.COFFEE,1,2,1);e.setItem(0,new ItemStack(PowerMod.ITEMS.get("coffee_beans"),18));e.setItem(1,item("empty_cup"));e.setItem(3,new ItemStack(Items.BLAZE_POWDER));e.setItem(4,new ItemStack(Items.BLAZE_POWDER));e.getEnergyStorage().setEnergy(300000);
+        try(var tx=net.fabricmc.fabric.api.transfer.v1.transaction.Transaction.openOuter()){e.inputTank.insert(net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant.of(net.minecraft.world.level.material.Fluids.WATER),500L*81,tx);tx.commit();}
+        run(e,18);e.brewing=true;run(e,500);
+        check(e.getItem(2).is(PowerMod.ITEMS.get("coffee_cup"))&&e.getItem(1).isEmpty()&&e.inputTank.amount==0&&e.energy()==225000,"Coffee Machine consumes one cup, 500 mB water and 75000 energy");
+        var effects=e.getItem(2).getOrDefault(net.minecraft.core.component.DataComponents.POTION_CONTENTS,net.minecraft.world.item.alchemy.PotionContents.EMPTY).customEffects();
+        check(effects.size()==1&&effects.getFirst().getAmplifier()==1&&effects.getFirst().getDuration()==300&&e.getItem(3).isEmpty()&&e.getItem(4).isEmpty(),"Repeated coffee ingredient increases native effect strength and consumes each ingredient once");h.succeed();
+    }
+    @GameTest public void specialLensesColorMineAndTransferEnchantments(GameTestHelper h){
+        var e=machine(h,WorkKind.RECONSTRUCTOR,1,2,1);var p=e.getBlockPos().east(3);e.setItem(0,item("lens_of_color"));e.getEnergyStorage().setEnergy(300000);h.getLevel().setBlock(p,Blocks.RED_WOOL.defaultBlockState(),3);e.fire();check(h.getLevel().getBlockState(p).is(Blocks.BLACK_WOOL)&&e.energy()==298800,"Color lens uses native upstream color rotation and 200 conversion energy");
+        e.setItem(0,item("lens_of_the_miner"));h.getLevel().setBlock(p,Blocks.STONE.defaultBlockState(),3);e.fire();check(!h.getLevel().getBlockState(p).is(Blocks.STONE)&&e.energy()==237800,"Mining lens converts stone using weighted ore recipes for 60000 energy");
+        e.setItem(0,item("lens_of_disenchanting"));e.getEnergyStorage().setEnergy(300000);h.getLevel().setBlock(p,Blocks.BEDROCK.defaultBlockState(),3);
+        var sword=new ItemStack(Items.DIAMOND_SWORD);var sharp=h.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS);sword.enchant(sharp,3);
+        var tool=new ItemEntity(h.getLevel(),p.getX()+.5,p.getY()+.5,p.getZ()+.5,sword);var book=new ItemEntity(h.getLevel(),p.getX()+.5,p.getY()+.5,p.getZ()+.5,new ItemStack(Items.BOOK));h.getLevel().addFreshEntity(tool);h.getLevel().addFreshEntity(book);e.fire();
+        check(tool.getItem().getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS,net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY).isEmpty()&&book.getItem().is(Items.ENCHANTED_BOOK)&&book.getItem().getOrDefault(net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS,net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY).getLevel(sharp)==3&&e.energy()==49000,"Disenchanting transfers exactly one enchantment to a book for 250000 energy");h.succeed();
+    }
+
 }

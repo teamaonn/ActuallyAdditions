@@ -18,13 +18,17 @@ for crystal in ['restonia','palis','diamatine','void','emeradic','enori']:
 blocks.append({'id':'black_quartz_ore','kind':'block'})
 blocks=list({b['id']:b for b in blocks}.values())
 (resources/'aa_content.json').write_text(json.dumps({'items':items,'blocks':blocks},indent=2)+'\n')
-machines=['atomic_reconstructor','empowerer','display_stand','powered_furnace','crusher','crusher_double','energizer','enervator','battery_box','breaker','placer','dropper','long_range_breaker','heat_collector','leaf_generator','bio_reactor','canola_press','fermenting_barrel','oil_generator']
+machines=['atomic_reconstructor','empowerer','display_stand','powered_furnace','crusher','crusher_double','energizer','enervator','battery_box','breaker','placer','dropper','long_range_breaker','heat_collector','leaf_generator','bio_reactor','canola_press','fermenting_barrel','oil_generator','feeder','xp_solidifier','farmer','ranged_collector','fluid_collector','fluid_placer','lava_factory_controller','vertical_digger','phantom_itemface','phantom_energyface','phantom_liquiface','phantom_redstoneface','phantom_breaker','phantom_placer','coffee_machine']
 power=['coal_generator','laser_relay','laser_relay_advanced','laser_relay_extreme','laser_wrench','laser_upgrade_range']
 batteries={prefix+'_battery' for prefix in ['single','double','triple','quadruple','quintuple']}
 oilnames={"canola_oil","refined_canola_oil","crystallized_oil","empowered_oil"}
 crops={"canola","rice","flax","coffee"}
 seeds={"canola_seeds","rice_seeds","flax_seeds","coffee_beans","crystallized_canola_seed","empowered_canola_seed"}
-known=seeds|{n+"_bucket" for n in oilnames}|batteries|set(items)|{b['id'] for b in blocks}|set(machines)|set(power)
+decor={"phantom_booster"}|{"lamp_"+n for n in ["white","orange","magenta","light_blue","yellow","lime","pink","gray","light_gray","cyan","purple","blue","brown","green","red","black"]}|{"greenhouse_glass"}
+utilities={n+"_aiot" for n in ["wooden","stone","iron","gold","diamond","netherite"]}|{"crafter_on_a_stick","teleport_staff"}
+drills={"drill_"+n for n in ["white","orange","magenta","light_blue","yellow","lime","pink","gray","light_gray","cyan","purple","blue","brown","green","red","black"]}|{"drill_upgrade_"+n for n in ["speed","speed_ii","speed_iii","silk_touch","fortune","fortune_ii","three_by_three","five_by_five","block_placing"]}|{"travelers_sack"}
+lenses={"lens_of_"+n for n in ["color","the_miner","certain_death","the_killer","detonation","disenchanting"]}
+known={"coffee_cup"}|lenses|drills|utilities|{"phantom_connector","filter"}|decor|{"solidified_experience"}|seeds|{n+"_bucket" for n in oilnames}|batteries|set(items)|{b['id'] for b in blocks}|set(machines)|set(power)
 assets=resources/'assets/actuallyadditions';generated=root/'src/generated/resources';main=root/'src/main/resources'
 def write(path,data):path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(data,indent=2).replace('c:slimeballs','c:slime_balls')+'\n')
 def copy(rel):
@@ -49,7 +53,7 @@ for name in sorted(known-set(power)):
  if source is None:raise RuntimeError('No item model '+name)
  model('actuallyadditions:item/'+name)
  write(assets/f'items/{name}.json',{'model':{'type':'minecraft:model','model':'actuallyadditions:item/'+name}})
-for name in [b['id'] for b in blocks]+machines+sorted(crops):
+for name in [b['id'] for b in blocks]+machines+sorted(crops|decor):
  state=generated/f'assets/actuallyadditions/blockstates/{name}.json'
  if not state.exists():raise RuntimeError('Missing blockstate '+name)
  data=json.loads(state.read_text());text=json.dumps(data).replace('lit=', 'active=')
@@ -80,9 +84,9 @@ counts={};skipped=[]
 for p in sorted((generated/'data/actuallyadditions/recipe').rglob('*.json')):
  data=json.loads(p.read_text());typ=data['type'];rel=p.relative_to(generated/'data/actuallyadditions/recipe')
  if not refs(data)<=known|oilnames:skipped.append(str(rel));continue
- if typ in ['actuallyadditions:laser','actuallyadditions:crushing','actuallyadditions:empowering','actuallyadditions:pressing','actuallyadditions:fermenting','actuallyadditions:liquid_fuel']:
+ if typ in ['actuallyadditions:laser','actuallyadditions:crushing','actuallyadditions:empowering','actuallyadditions:pressing','actuallyadditions:fermenting','actuallyadditions:liquid_fuel','actuallyadditions:mining_lens','actuallyadditions:color_change','actuallyadditions:coffee_ingredient']:
   write(resources/'data/actuallyadditions/aa_processing'/rel,data)
- elif typ in ['minecraft:crafting_shaped','minecraft:crafting_shapeless','minecraft:smelting','minecraft:blasting','minecraft:stonecutting','actuallyadditions:copy_nbt']:
+ elif typ in ['minecraft:crafting_shaped','minecraft:crafting_shapeless','minecraft:smelting','minecraft:blasting','minecraft:stonecutting','actuallyadditions:copy_nbt','actuallyadditions:copy_nbt_shapeless']:
   write(resources/'data/actuallyadditions/recipe'/rel,ingredient(data))
  else:continue
  counts[typ]=counts.get(typ,0)+1
@@ -123,3 +127,7 @@ for name in sorted(oilnames):
 for name in crops:
  copy(f'data/actuallyadditions/loot_table/blocks/{name}.json')
 write(resources/'data/minecraft/tags/block/crops.json',{'replace':False,'values':['actuallyadditions:'+n for n in sorted(crops)]})
+
+write(resources/'data/actuallyadditions/tags/block/mineable/aio.json',{'replace':False,'values':['#minecraft:mineable/pickaxe','#minecraft:mineable/axe','#minecraft:mineable/shovel','#minecraft:mineable/hoe']})
+
+write(resources/'data/actuallyadditions/tags/block/mineable/drill.json',{'replace':False,'values':['#minecraft:mineable/pickaxe','#minecraft:mineable/shovel']})

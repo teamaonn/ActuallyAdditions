@@ -1,7 +1,7 @@
 plugins { id 'net.fabricmc.fabric-loom' version '1.18.2' }
-version = '0.1.0'
+version = '0.2.0-dev'
 group = 'de.ellpeck.actuallyadditions'
-base { archivesName = 'actuallyadditions-fabric-power-26.3' }
+base { archivesName = 'actuallyadditions-fabric-26.3' }
 repositories {
     maven { url = 'https://maven.fabricmc.net/' }
     maven { url = 'https://maven.twelveiterations.com/repository/maven-public/' }
@@ -18,7 +18,7 @@ dependencies {
     if (providers.gradleProperty('excompressum_jar').isPresent()) gametestImplementation files(providers.gradleProperty('excompressum_jar').get())
     if (providers.gradleProperty('omnia_jar').isPresent()) gametestImplementation files(providers.gradleProperty('omnia_jar').get())
 }
-processResources { inputs.property 'version', project.version; filesMatching('fabric.mod.json') { expand 'version': project.version } }
+
 java { toolchain.languageVersion = JavaLanguageVersion.of(25); withSourcesJar(); sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 jar { from('../LICENSE') }

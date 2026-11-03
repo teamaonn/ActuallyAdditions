@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "actuallyadditions:block/lamp_magenta"
+    },
+    "active=true": {
+      "model": "actuallyadditions:block/lamp_magenta_on"
+    }
+  }
+}

@@ -8,7 +8,7 @@ public final class MachineTank extends SingleVariantStorage<FluidVariant> {
     private final WorkEntity owner;private final boolean input;private boolean internal;
     public MachineTank(WorkEntity owner,boolean input){this.owner=owner;this.input=input;}
     @Override protected FluidVariant getBlankVariant(){return FluidVariant.blank();}
-    @Override protected long getCapacity(FluidVariant resource){return 2000L*81;}
+    @Override protected long getCapacity(FluidVariant resource){return (owner.kind()==WorkKind.FLUID_COLLECTOR||owner.kind()==WorkKind.FLUID_PLACER?8000L:owner.kind()==WorkKind.COFFEE?4000L:2000L)*81;}
     @Override protected boolean canInsert(FluidVariant resource){return internal||input&&owner.acceptsFluid(resource);}
     @Override protected boolean canExtract(FluidVariant resource){return internal||!input;}
     @Override protected void onFinalCommit(){owner.setChanged();}

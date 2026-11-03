@@ -21,15 +21,32 @@ import net.minecraft.world.level.storage.*;
 import net.minecraft.world.phys.*;
 
 public final class WorkEntity extends BlockEntity implements WorldlyContainer,MenuProvider,BalmEnergyStorageProvider {
-    private final NonNullList<ItemStack> items=NonNullList.withSize(9,ItemStack.EMPTY);
+    private final NonNullList<ItemStack> items=NonNullList.withSize(12,ItemStack.EMPTY);
     private final List<ItemStack>[] pending=new List[]{new ArrayList<>(),new ArrayList<>()};
     private final ItemStack[] jobInput={ItemStack.EMPTY,ItemStack.EMPTY};
     private final String[] jobKey={"",""};
     private final int[] progress={0,0};
     private int energy,counter,burn,production,heatAge;
+    private long experience;
+    private int farmIndex,digIndex,digY=Integer.MIN_VALUE;
+    public boolean onlyOres;
+    public BlockPos bound;
+    private int coffeeCache;public boolean brewing;
+    public final int[] weakSignal=new int[6],strongSignal=new int[6];
     public final MachineTank inputTank=new MachineTank(this,true), outputTank=new MachineTank(this,false);
     public net.fabricmc.fabric.api.transfer.v1.storage.Storage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> fluidStorage(){
-        return switch(kind()){case PRESS->outputTank;case OIL->inputTank;case FERMENT->new net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage<>(List.of(inputTank,outputTank));default->null;};
+        return switch(kind()){case PRESS,FLUID_COLLECTOR->outputTank;case OIL,FLUID_PLACER,COFFEE->inputTank;case FERMENT->new net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage<>(List.of(inputTank,outputTank));default->null;};
+    }
+    public net.fabricmc.fabric.api.transfer.v1.storage.Storage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> fluidStorage(Direction side){return kind()==WorkKind.PHANTOM_FLUID?new RemoteStorage<>(()->remoteFluid(side)):fluidStorage();}
+    public boolean isPhantom(){return switch(kind()){case PHANTOM_ITEM,PHANTOM_FLUID,PHANTOM_ENERGY,PHANTOM_REDSTONE,PHANTOM_BREAKER,PHANTOM_PLACER->true;default->false;};}
+    public boolean phantomWork(){return kind()==WorkKind.PHANTOM_BREAKER||kind()==WorkKind.PHANTOM_PLACER;}
+    public boolean boundAvailable(){return bound!=null&&level!=null&&level.hasChunkAt(bound)&&worldPosition.distSqr(bound)<=(long)upgradedRange(phantomWork()?3:16)*upgradedRange(phantomWork()?3:16)&&!(level.getBlockEntity(bound) instanceof WorkEntity e&&e.isPhantom());}
+    public net.fabricmc.fabric.api.transfer.v1.storage.Storage<net.fabricmc.fabric.api.transfer.v1.item.ItemVariant> remoteItems(Direction side){return boundAvailable()?net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.SIDED.find(level,bound,side):null;}
+    public net.fabricmc.fabric.api.transfer.v1.storage.Storage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> remoteFluid(Direction side){return boundAvailable()?net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.find(level,bound,side):null;}
+    @Override public EnergyStorage getEnergyStorage(Direction side){
+        if(kind()!=WorkKind.PHANTOM_ENERGY)return storage;
+        if(!boundAvailable()||level.getBlockEntity(bound) instanceof de.ellpeck.actuallyadditions.fabric.power.RelayEntity)return null;
+        return de.ellpeck.actuallyadditions.fabric.power.EnergyAccess.at(level,bound,side);
     }
     public boolean pulseMode;
     private boolean lastSignal;
@@ -55,7 +72,20 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         if(!(level instanceof ServerLevel server))return;
         boolean signal=level.hasNeighborSignal(worldPosition),active=false;
         switch(kind()){
-            case DISPLAY -> {}
+            case DISPLAY,PHANTOM_ITEM,PHANTOM_FLUID -> {}
+            case COFFEE -> {if(signal)brewing=true;active=coffee();}
+            case PHANTOM_ENERGY -> {if(boundAvailable())for(var side:Direction.values()){
+                var source=getEnergyStorage(side);if(source==null||!source.canDrain())continue;var pos=worldPosition.relative(side);if(!level.hasChunkAt(pos))continue;var target=de.ellpeck.actuallyadditions.fabric.power.EnergyAccess.at(level,pos,side.getOpposite());if(target==null||!target.canFill())continue;int offer=source.drain(Integer.MAX_VALUE,true);if(offer>0){int n=Math.clamp(target.fill(offer,false),0,offer);source.drain(n,false);active=n>0||active;}
+            }}
+            case PHANTOM_REDSTONE -> {boolean changed=false;for(var side:Direction.values()){int i=side.ordinal(),weak=boundAvailable()?level.getBlockState(bound).getSignal(level,bound,side):0,strong=boundAvailable()?level.getBlockState(bound).getDirectSignal(level,bound,side):0;if(weak!=weakSignal[i]||strong!=strongSignal[i]){weakSignal[i]=weak;strongSignal[i]=strong;changed=true;}}if(changed)level.updateNeighborsAt(worldPosition,getBlockState().getBlock());}
+            case PHANTOM_BREAKER,PHANTOM_PLACER -> {if(pulseMode?signal&&!lastSignal:!signal&&++counter>=15){counter=0;active=worldWork();setChanged();}}
+            case LAVA -> {if(!signal)active=lava();}
+            case DIGGER -> {if(!signal&&++counter>=5){counter=0;active=dig();setChanged();}}
+            case FLUID_COLLECTOR,FLUID_PLACER -> {if(pulseMode?signal&&!lastSignal:!signal&&++counter>=15){counter=0;active=fluidWorld();setChanged();}if(kind()==WorkKind.FLUID_COLLECTOR)pushFluid();}
+            case COLLECTOR -> {if(pulseMode?signal&&!lastSignal:!signal)active=collect();}
+            case FARMER -> {if(!signal&&++counter>=5){counter=0;active=farm();setChanged();}}
+            case FEEDER -> {if(!signal)active=feed();}
+            case XP -> {active=solidify(!signal);}
             case OIL -> {active=oil(!signal);pushEnergy();}
             case PRESS,FERMENT -> {if(!signal)active=fluidProcess();pushFluid();}
             case HEAT,LEAF,BIO -> {active=generate(!signal);pushEnergy();}
@@ -89,10 +119,134 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         if(kind()==WorkKind.ENERVATOR||kind()==WorkKind.BATTERY_BOX&&EnergyItem.enabled(stack))active=pushEnergy()||active;
         if(active)setChanged();return active;
     }
+    private boolean coffee(){
+        var beans=items.getFirst();if(coffeeCache<=298&&beans.is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("coffee_beans"))){beans.shrink(1);coffeeCache+=2;setChanged();}
+        if(!brewing)return false;
+        if(!items.get(1).is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("empty_cup"))||!items.get(2).isEmpty()||coffeeCache<35||inputTank.variant.getFluid()!=net.minecraft.world.level.material.Fluids.WATER||inputTank.amount<500L*81){progress[0]=0;brewing=false;setChanged();return false;}
+        if(energy<150)return false;energy-=150;progress[0]++;setChanged();
+        if(progress[0]>=500){
+            var ingredients=new ArrayList<>(items.subList(3,11));var output=Coffee.brew(level,ingredients);
+            try(var tx=net.fabricmc.fabric.api.transfer.v1.transaction.Transaction.openOuter()){if(inputTank.take(inputTank.variant,500L*81,tx)!=500L*81)return false;tx.commit();}
+            for(int i=0;i<8;i++)items.set(i+3,ingredients.get(i));items.get(1).shrink(1);items.set(2,output);coffeeCache-=35;progress[0]=0;brewing=false;
+        }return true;
+    }
+    public int upgradedRange(int base){
+        for(int i=1;i<=3;i++){var p=worldPosition.above(i);if(!level.hasChunkAt(p)||!level.getBlockState(p).is(Content.BLOCKS.get("phantom_booster")))break;base*=2;}return base;
+    }
+    private boolean lava(){
+        var center=worldPosition.above();
+        if(energy<150000||!level.isEmptyBlock(center)){progress[0]=0;return false;}
+        for(var side:List.of(Direction.NORTH,Direction.SOUTH,Direction.EAST,Direction.WEST))if(!level.getBlockState(center.relative(side)).is(Content.BLOCKS.get("lava_factory_casing"))){progress[0]=0;return false;}
+        if(++progress[0]>=200){if(level.setBlockAndUpdate(center,Blocks.LAVA.defaultBlockState()))energy-=150000;progress[0]=0;}setChanged();return true;
+    }
+    public boolean fluidWorld(){
+        var pos=worldPosition.relative(getBlockState().getValue(PowerBlock.FACING));if(!level.hasChunkAt(pos))return false;var state=level.getBlockState(pos);
+        if(kind()==WorkKind.FLUID_COLLECTOR){
+            var fluid=state.getFluidState().getType();boolean cauldron=false;
+            if(state.getBlock() instanceof AbstractCauldronBlock c&&c.isFull(state)){
+                if(state.is(Blocks.WATER_CAULDRON)){fluid=net.minecraft.world.level.material.Fluids.WATER;cauldron=true;}
+                else if(state.is(Blocks.LAVA_CAULDRON)){fluid=net.minecraft.world.level.material.Fluids.LAVA;cauldron=true;}
+            }
+            if(!cauldron&&(!(state.getBlock() instanceof LiquidBlock)||!state.getFluidState().isSource()))return false;
+            var variant=net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant.of(fluid);
+            try(var tx=net.fabricmc.fabric.api.transfer.v1.transaction.Transaction.openOuter()){
+                if(outputTank.add(variant,81000,tx)!=81000)return false;
+                if(!level.setBlockAndUpdate(pos,cauldron?Blocks.CAULDRON.defaultBlockState():Blocks.AIR.defaultBlockState()))return false;tx.commit();return true;
+            }
+        }
+        if(inputTank.amount<81000||!state.canBeReplaced()||state.getFluidState().isSource()||level.getBlockEntity(pos)!=null)return false;
+        var fluid=inputTank.variant.getFluid();var block=fluid.defaultFluidState().createLegacyBlock();if(block.isAir())return false;
+        try(var tx=net.fabricmc.fabric.api.transfer.v1.transaction.Transaction.openOuter()){
+            if(inputTank.take(inputTank.variant,81000,tx)!=81000)return false;
+            if(fluid.is(net.minecraft.tags.FluidTags.WATER)&&level.environmentAttributes().getValue(net.minecraft.world.attribute.EnvironmentAttributes.WATER_EVAPORATES,pos))((ServerLevel)level).sendParticles(net.minecraft.core.particles.ParticleTypes.SMOKE,pos.getX()+.5,pos.getY()+.5,pos.getZ()+.5,8,.4,.4,.4,0);
+            else if(!level.setBlockAndUpdate(pos,block))return false;tx.commit();return true;
+        }
+    }
+    public boolean dig(){
+        if(digY==Integer.MIN_VALUE)digY=worldPosition.getY()-1;if(digY<level.getMinY())return false;
+        int range=upgradedRange(2),width=range*2+1;digIndex=Math.floorMod(digIndex,width*width);
+        var pos=new BlockPos(worldPosition.getX()+digIndex%width-range,digY,worldPosition.getZ()+digIndex/width-range);
+        if(!level.hasChunkAt(pos))return false;var state=level.getBlockState(pos);int cost=650*(onlyOres?3:1);boolean mined=false;
+        boolean ore=state.is(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK,net.minecraft.resources.Identifier.parse("c:ores")));
+        if(!state.isAir()&&(!onlyOres||ore)&&state.getDestroySpeed(level,pos)>=0&&level.getBlockEntity(pos)==null){
+            if(energy<cost)return false;var fake=net.fabricmc.fabric.api.entity.FakePlayer.get((ServerLevel)level);
+            if(net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level,fake,pos,state,null)){
+                var drops=Block.getDrops(state,(ServerLevel)level,pos,null);if(!insertAll(drops,true))return false;
+                if(level.setBlockAndUpdate(pos,Blocks.AIR.defaultBlockState())){insertAll(drops,false);energy-=cost;mined=true;}
+            }
+        }
+        if(++digIndex>=width*width){digIndex=0;digY--;}setChanged();return mined;
+    }
+    public boolean collect(){
+        boolean active=false;
+        for(var entity:level.getEntitiesOfClass(ItemEntity.class,new AABB(worldPosition).inflate(6))){
+            var stack=entity.getItem();if(!entity.isAlive()||entity.hasPickUpDelay()||stack.isEmpty()||!FilterItem.accepts(items.get(6),stack))continue;
+            var copy=new ArrayList<>(items.stream().map(ItemStack::copy).toList());if(!insertRange(copy,stack,0,6))continue;
+            for(int i=0;i<6;i++)items.set(i,copy.get(i));entity.discard();active=true;
+        }if(active)setChanged();return active;
+    }
+    private static boolean seed(ItemStack stack){
+        if(stack.isEmpty())return false;
+        return stack.is(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM,net.minecraft.resources.Identifier.parse("c:seeds")))||stack.getItem() instanceof BlockItem item&&(item.getBlock() instanceof CropBlock||item.getBlock() instanceof StemBlock||item.getBlock() instanceof NetherWartBlock||item.getBlock() instanceof SugarCaneBlock||item.getBlock() instanceof CactusBlock);
+    }
+    private static boolean insertRange(List<ItemStack> inventory,ItemStack source,int start,int end){
+        var stack=source.copy();
+        for(int i=start;i<end&&!stack.isEmpty();i++){var target=inventory.get(i);if(!target.isEmpty()&&ItemStack.isSameItemSameComponents(stack,target)){int n=Math.min(stack.getCount(),target.getMaxStackSize()-target.getCount());target.grow(n);stack.shrink(n);}}
+        for(int i=start;i<end&&!stack.isEmpty();i++)if(inventory.get(i).isEmpty())inventory.set(i,stack.split(Math.min(stack.getCount(),stack.getMaxStackSize())));
+        return stack.isEmpty();
+    }
+    public boolean farm(){
+        int index=farmIndex;farmIndex=(farmIndex+1)%81;
+        var side=getBlockState().getValue(PowerBlock.FACING);var center=worldPosition.relative(side,5);var pos=center.offset(index%9-4,0,index/9-4);
+        if(!level.hasChunkAt(pos))return false;var state=level.getBlockState(pos);var block=state.getBlock();
+        boolean crop=block instanceof CropBlock c&&c.isMaxAge(state),wart=block instanceof NetherWartBlock&&state.getValue(NetherWartBlock.AGE)==3;
+        boolean fruit=block==Blocks.MELON||block==Blocks.PUMPKIN;
+        boolean stalk=block instanceof SugarCaneBlock||block instanceof CactusBlock;
+        if(crop||wart||fruit||stalk){
+            var harvest=pos;if(stalk){harvest=pos.above();if(!level.getBlockState(harvest).is(block))return false;state=level.getBlockState(harvest);}
+            int cost=wart?500:250;if(energy<cost||level.getBlockEntity(harvest)!=null)return false;
+            var fake=net.fabricmc.fabric.api.entity.FakePlayer.get((ServerLevel)level);
+            if(!net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level,fake,harvest,state,null))return false;
+            var copy=new ArrayList<>(items.stream().map(ItemStack::copy).toList());var drops=Block.getDrops(state,(ServerLevel)level,harvest,null);
+            if(drops.isEmpty())return false;
+            for(var drop:drops){var before=new ArrayList<>(copy.stream().map(ItemStack::copy).toList());if(seed(drop)&&insertRange(copy,drop,0,6))continue;copy=before;if(!insertRange(copy,drop,6,12))return false;}
+            if(!level.setBlockAndUpdate(harvest,Blocks.AIR.defaultBlockState()))return false;
+            for(int i=0;i<12;i++)items.set(i,copy.get(i));energy-=cost;setChanged();return true;
+        }
+        if(!state.canBeReplaced())return false;
+        for(int i=0;i<6;i++){
+            var stack=items.get(i);if(!seed(stack)||!(stack.getItem() instanceof BlockItem item))continue;
+            var plant=item.getBlock().defaultBlockState();var soil=pos.below();boolean till=plant.getBlock() instanceof CropBlock&&(level.getBlockState(soil).is(Blocks.DIRT)||level.getBlockState(soil).is(Blocks.GRASS_BLOCK));
+            int cost=plant.getBlock() instanceof NetherWartBlock?500:plant.getBlock() instanceof CactusBlock||plant.getBlock() instanceof SugarCaneBlock?250:350;
+            if(energy<cost*(till?2:1))return false;
+            if(till){if(!Blocks.FARMLAND.defaultBlockState().canSurvive(level,soil))continue;level.setBlockAndUpdate(soil,Blocks.FARMLAND.defaultBlockState());energy-=cost;setChanged();}
+            if(!plant.canSurvive(level,pos))continue;
+            if(level.setBlockAndUpdate(pos,plant)){stack.shrink(1);energy-=cost;setChanged();return true;}
+        }return false;
+    }
+    private boolean feed(){
+        counter=Math.min(100,counter+1);var stack=items.getFirst();if(counter<100||stack.isEmpty())return false;
+        var animals=level.getEntitiesOfClass(net.minecraft.world.entity.animal.Animal.class,new AABB(worldPosition).inflate(5));if(animals.size()<2||animals.size()>=30)return false;
+        for(var animal:animals)if(animal.getAge()==0&&!animal.isInLove()&&animal.canFallInLove()&&animal.isFood(stack)){
+            animal.setInLove(null);stack.shrink(1);counter=0;setChanged();return true;
+        }return false;
+    }
+    private boolean solidify(boolean enabled){
+        boolean active=false;
+        if(enabled)for(var orb:level.getEntitiesOfClass(net.minecraft.world.entity.ExperienceOrb.class,new AABB(worldPosition).inflate(5))){
+            if(!orb.isAlive())continue;experience=Math.min(Integer.MAX_VALUE,experience+orb.getValue());orb.discard();active=true;
+        }
+        var source=items.get(1);var xp=de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("solidified_experience");
+        if(source.is(xp)&&experience<=Integer.MAX_VALUE-(long)source.getCount()*8){experience+=(long)source.getCount()*8;items.set(1,ItemStack.EMPTY);active=true;}
+        var output=items.getFirst();if(experience>=8&&(output.isEmpty()||output.is(xp)&&output.getCount()<output.getMaxStackSize())){
+            int n=(int)Math.min(experience/8,output.isEmpty()?64:output.getMaxStackSize()-output.getCount());if(output.isEmpty())items.set(0,new ItemStack(xp,n));else output.grow(n);experience-=n*8L;active=true;
+        }
+        if(active)setChanged();return active;
+    }
     private static net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant fluid(JsonObject definition){return net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant.of(net.minecraft.core.registries.BuiltInRegistries.FLUID.getValue(net.minecraft.resources.Identifier.parse(definition.get("id").getAsString())));}
     private static long volume(JsonObject definition){return Math.max(0,definition.get("amount").getAsLong())*81;}
     public boolean acceptsFluid(net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant fluid){
-        if(level==null)return false;
+        if(kind()==WorkKind.COFFEE)return fluid.getFluid()==net.minecraft.world.level.material.Fluids.WATER;if(kind()==WorkKind.FLUID_PLACER)return true;if(level==null)return false;
         String type=kind()==WorkKind.OIL?"liquid_fuel":"fermenting",key=kind()==WorkKind.OIL?"fuel":"ingredient";
         return Processing.all(level,type).stream().anyMatch(r->fluid(r.data().getAsJsonObject(key)).equals(fluid));
     }
@@ -183,16 +337,16 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         if(!simulate){for(int i=0;i<kind().slots;i++)items.set(i,copy.get(i));setChanged();}return true;
     }
     public boolean worldWork(){
-        var side=getBlockState().getValue(PowerBlock.FACING);var front=worldPosition.relative(side);
+        var side=getBlockState().getValue(PowerBlock.FACING);var front=worldPosition.relative(side);if(phantomWork()){if(!boundAvailable())return false;front=bound;if(kind()==WorkKind.PHANTOM_PLACER)side=Direction.UP;}
         if(!level.hasChunkAt(front))return false;
         if(kind()==WorkKind.DROPPER){
             for(var stack:items)if(!stack.isEmpty()){var center=Vec3.atCenterOf(front);var drop=new ItemEntity(level,center.x,center.y,center.z,stack.copyWithCount(1));drop.setDeltaMovement(side.getStepX()*.1,side.getStepY()*.1,side.getStepZ()*.1);drop.setDefaultPickUpDelay();if(level.addFreshEntity(drop)){stack.shrink(1);setChanged();return true;}return false;}return false;
         }
-        if(kind()==WorkKind.PLACER){
+        if(kind()==WorkKind.PLACER||kind()==WorkKind.PHANTOM_PLACER){
             var fake=net.fabricmc.fabric.api.entity.FakePlayer.get((ServerLevel)level);
             for(int i=0;i<items.size();i++)if(!items.get(i).isEmpty()){
                 var previous=fake.getMainHandItem();fake.setPos(Vec3.atCenterOf(worldPosition));fake.setItemInHand(InteractionHand.MAIN_HAND,items.get(i).copy());
-                try{var result=fake.getMainHandItem().useOn(new net.minecraft.world.item.context.UseOnContext(fake,InteractionHand.MAIN_HAND,new net.minecraft.world.phys.BlockHitResult(Vec3.atCenterOf(worldPosition).relative(side,.5),side,worldPosition,false)));
+                try{var result=fake.getMainHandItem().useOn(new net.minecraft.world.item.context.UseOnContext(fake,InteractionHand.MAIN_HAND,new net.minecraft.world.phys.BlockHitResult(Vec3.atCenterOf(front).relative(side,-.5),side,front.relative(side.getOpposite()),false)));
                     if(result.consumesAction()){items.set(i,fake.getMainHandItem().copy());setChanged();return true;}
                 }finally{fake.setItemInHand(InteractionHand.MAIN_HAND,previous);}
             }return false;
@@ -200,7 +354,7 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         boolean active=false;int range=kind()==WorkKind.LONG_BREAKER?8:1;
         if(kind()==WorkKind.LONG_BREAKER&&energy<40)return false;
         for(int i=1;i<=range;i++){
-            var p=worldPosition.relative(side,i);if(!level.hasChunkAt(p))break;var state=level.getBlockState(p);
+            var p=phantomWork()?front:worldPosition.relative(side,i);if(!level.hasChunkAt(p))break;var state=level.getBlockState(p);
             if(state.isAir()||state.getDestroySpeed(level,p)<0||level.getBlockEntity(p)!=null)continue;
             var fake=net.fabricmc.fabric.api.entity.FakePlayer.get((ServerLevel)level);
             if(!net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level,fake,p,state,null))continue;
@@ -280,11 +434,14 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         }
         reset(0);jobKey[1]="";return false;
     }
+    public boolean spend(int n){if(n<0||energy<n)return false;energy-=n;setChanged();return true;}
     public boolean fire(){
-        if(!(level instanceof ServerLevel server)||energy<1000)return false;
+        var lens=items.getFirst().getItem() instanceof Lenses l?l:null;int distance=lens==null?10:lens.distance;
+        if(!(level instanceof ServerLevel server)||energy<1000+(lens==null?0:lens.minimum))return false;
         energy-=1000;setChanged();var side=getBlockState().getValue(PowerBlock.FACING);
-        BlockPos end=worldPosition.relative(side,10);
-        for(int d=1;d<=10;d++){var p=worldPosition.relative(side,d);if(!level.hasChunkAt(p)){end=worldPosition.relative(side,d-1);break;}if(!level.getBlockState(p).isAir()){end=p;break;}}
+        BlockPos end=worldPosition.relative(side,distance);
+        for(int d=1;d<=distance;d++){var p=worldPosition.relative(side,d);if(!level.hasChunkAt(p)){end=worldPosition.relative(side,d-1);break;}if(!level.getBlockState(p).isAir()){end=p;break;}}
+        if(lens!=null){var start=Vec3.atCenterOf(worldPosition);var finish=Vec3.atCenterOf(end);lens.fire(this,server,end,new AABB(start,finish).inflate(.35));beam(server,start,finish);return true;}
         // Convert the 3x3 impact plane, protecting inventories/block entities from replacement.
         for(int a=-1;a<=1;a++)for(int b=-1;b<=1;b++){
             BlockPos p=switch(side.getAxis()){case X->end.offset(0,a,b);case Y->end.offset(a,0,b);case Z->end.offset(a,b,0);};
@@ -308,13 +465,14 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
             while(count>0){int take=Math.min(count,output.getMaxStackSize());drop(entity.getX(),entity.getY(),entity.getZ(),output.copyWithCount(take));count-=take;}
             energy-=cost*amount;setChanged();break;
         }
-        var delta=finish.subtract(start);for(int i=1;i<=20;i++){var p=start.add(delta.scale(i/20D));server.sendParticles(new DustParticleOptions(0x1B6FFF,.7F),p.x,p.y,p.z,1,0,0,0,0);}
+        beam(server,start,finish);
         return true;
     }
+    private void beam(ServerLevel server,Vec3 start,Vec3 finish){var delta=finish.subtract(start);for(int i=1;i<=20;i++){var p=start.add(delta.scale(i/20D));server.sendParticles(new DustParticleOptions(0x1B6FFF,.7F),p.x,p.y,p.z,1,0,0,0,0);}}
     private void drop(double x,double y,double z,ItemStack stack){var entity=new ItemEntity(level,x,y,z,stack);entity.setDefaultPickUpDelay();level.addFreshEntity(entity);}
     public final ContainerData data=new ContainerData(){
-        public int getCount(){return 9;}
-        public int get(int i){return switch(i){case 0->energy()&65535;case 1->energy()>>>16;case 2->progress[0];case 3->progress[1];case 4->kind().ordinal();case 5->pulseMode?1:0;case 6->level!=null&&level.hasNeighborSignal(worldPosition)?1:0;case 7->capacity()&65535;case 8->capacity()>>>16;default->0;};}
+        public int getCount(){return 14;}
+        public int get(int i){return switch(i){case 0->energy()&65535;case 1->energy()>>>16;case 2->progress[0];case 3->progress[1];case 4->kind().ordinal();case 5->pulseMode?1:0;case 6->level!=null&&level.hasNeighborSignal(worldPosition)?1:0;case 7->capacity()&65535;case 8->capacity()>>>16;case 9->(int)(inputTank.amount/81);case 10->(int)(outputTank.amount/81);case 11->net.minecraft.core.registries.BuiltInRegistries.FLUID.getId(inputTank.variant.getFluid());case 12->net.minecraft.core.registries.BuiltInRegistries.FLUID.getId(outputTank.variant.getFluid());case 13->coffeeCache;default->0;};}
         public void set(int i,int value){}
     };
     @Override public Component getDisplayName(){return Component.translatable("block.actuallyadditions."+kind().id);}
@@ -329,20 +487,20 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
     @Override public void clearContent(){items.clear();setChanged();}
     @Override public boolean stillValid(Player player){return Container.stillValidBlockEntity(this,player);}
     @Override public boolean canPlaceItem(int slot,ItemStack stack){
-        return switch(kind()){case DISPLAY,EMPOWERER->slot==0;case ENERGIZER,ENERVATOR,BATTERY_BOX->slot==0&&stack.getItem() instanceof EnergyItem;case RECONSTRUCTOR,HEAT,LEAF,OIL,FERMENT->false;case PRESS->slot==0&&Processing.find(level,"pressing",stack).isPresent();case BIO->slot<8&&bioFuel(stack);case BREAKER,PLACER,DROPPER,LONG_BREAKER->slot<9;case FURNACE,DOUBLE_CRUSHER->slot==0||slot==3;case CRUSHER->slot==0;};
+        return switch(kind()){case DISPLAY,EMPOWERER->slot==0;case ENERGIZER,ENERVATOR,BATTERY_BOX->slot==0&&stack.getItem() instanceof EnergyItem;case PHANTOM_ITEM,PHANTOM_FLUID,PHANTOM_ENERGY,PHANTOM_REDSTONE,HEAT,LEAF,OIL,FERMENT,LAVA,FLUID_COLLECTOR,FLUID_PLACER->false;case PHANTOM_BREAKER,PHANTOM_PLACER->slot<9;case COFFEE->slot==0?stack.is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("coffee_beans")):slot==1?stack.is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("empty_cup")):slot>=3&&slot<11&&Processing.find(level,"coffee_ingredient",stack).isPresent();case RECONSTRUCTOR->slot==0&&stack.getItem() instanceof Lenses;case DIGGER->slot<9;case COLLECTOR->slot==6&&stack.getItem() instanceof FilterItem;case FARMER->slot<6&&seed(stack);case FEEDER->slot==0;case XP->slot==1&&stack.is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("solidified_experience"));case PRESS->slot==0&&Processing.find(level,"pressing",stack).isPresent();case BIO->slot<8&&bioFuel(stack);case BREAKER,PLACER,DROPPER,LONG_BREAKER->slot<9;case FURNACE,DOUBLE_CRUSHER->slot==0||slot==3;case CRUSHER->slot==0;};
     }
-    @Override public int[] getSlotsForFace(Direction side){if(kind()==WorkKind.DISPLAY||kind()==WorkKind.EMPOWERER||kind()==WorkKind.BATTERY_BOX)return new int[]{0};if(kind()==WorkKind.ENERGIZER||kind()==WorkKind.ENERVATOR)return side==Direction.DOWN?new int[]{1}:new int[]{0};if(kind()==WorkKind.BIO||kind()==WorkKind.BREAKER||kind()==WorkKind.PLACER||kind()==WorkKind.DROPPER||kind()==WorkKind.LONG_BREAKER)return java.util.stream.IntStream.range(0,kind().slots).toArray();return side==Direction.DOWN?new int[]{1,2,4,5}:new int[]{0,3};}
-    @Override public boolean canPlaceItemThroughFace(int slot,ItemStack stack,Direction side){return kind()!=WorkKind.BREAKER&&kind()!=WorkKind.LONG_BREAKER&&side!=Direction.DOWN&&canPlaceItem(slot,stack);}
-    @Override public boolean canTakeItemThroughFace(int slot,ItemStack stack,Direction side){if(kind()==WorkKind.BIO)return false;if(kind()==WorkKind.BREAKER||kind()==WorkKind.PLACER||kind()==WorkKind.DROPPER||kind()==WorkKind.LONG_BREAKER)return true;return side==Direction.DOWN&&((kind()==WorkKind.DISPLAY||kind()==WorkKind.EMPOWERER||kind()==WorkKind.BATTERY_BOX)?slot==0:(slot==1||slot==2||slot==4||slot==5));}
+    @Override public int[] getSlotsForFace(Direction side){if(kind()==WorkKind.COFFEE)return side==Direction.DOWN?new int[]{2,3,4,5,6,7,8,9,10}:new int[]{0,1,3,4,5,6,7,8,9,10};if(phantomWork())return java.util.stream.IntStream.range(0,9).toArray();if(kind()==WorkKind.DIGGER)return java.util.stream.IntStream.range(0,9).toArray();if(kind()==WorkKind.COLLECTOR)return new int[]{0,1,2,3,4,5};if(kind()==WorkKind.FARMER)return side==Direction.DOWN?new int[]{6,7,8,9,10,11}:new int[]{0,1,2,3,4,5};if(kind()==WorkKind.FEEDER)return new int[]{0};if(kind()==WorkKind.XP)return side==Direction.DOWN?new int[]{0}:new int[]{1};if(kind()==WorkKind.DISPLAY||kind()==WorkKind.EMPOWERER||kind()==WorkKind.BATTERY_BOX)return new int[]{0};if(kind()==WorkKind.ENERGIZER||kind()==WorkKind.ENERVATOR)return side==Direction.DOWN?new int[]{1}:new int[]{0};if(kind()==WorkKind.BIO||kind()==WorkKind.BREAKER||kind()==WorkKind.PLACER||kind()==WorkKind.DROPPER||kind()==WorkKind.LONG_BREAKER)return java.util.stream.IntStream.range(0,kind().slots).toArray();return side==Direction.DOWN?new int[]{1,2,4,5}:new int[]{0,3};}
+    @Override public boolean canPlaceItemThroughFace(int slot,ItemStack stack,Direction side){return kind()!=WorkKind.PHANTOM_BREAKER&&kind()!=WorkKind.DIGGER&&kind()!=WorkKind.BREAKER&&kind()!=WorkKind.LONG_BREAKER&&side!=Direction.DOWN&&canPlaceItem(slot,stack);}
+    @Override public boolean canTakeItemThroughFace(int slot,ItemStack stack,Direction side){if(kind()==WorkKind.COFFEE)return slot==2||slot>=3&&Processing.find(level,"coffee_ingredient",stack).isEmpty();if(phantomWork()||kind()==WorkKind.DIGGER)return true;if(kind()==WorkKind.COLLECTOR)return slot<6;if(kind()==WorkKind.FARMER)return slot>=6&&slot<12;if(kind()==WorkKind.BIO||kind()==WorkKind.FEEDER)return false;if(kind()==WorkKind.XP)return slot==0;if(kind()==WorkKind.BREAKER||kind()==WorkKind.PLACER||kind()==WorkKind.DROPPER||kind()==WorkKind.LONG_BREAKER)return true;return side==Direction.DOWN&&((kind()==WorkKind.DISPLAY||kind()==WorkKind.EMPOWERER||kind()==WorkKind.BATTERY_BOX)?slot==0:(slot==1||slot==2||slot==4||slot==5));}
     @Override public void preRemoveSideEffects(BlockPos pos,BlockState state){if(level instanceof ServerLevel){for(var stack:items)if(!stack.isEmpty())Block.popResource(level,pos,stack.copy());for(var queue:pending)for(var stack:queue)if(!stack.isEmpty())Block.popResource(level,pos,stack.copy());}items.clear();for(var queue:pending)queue.clear();super.preRemoveSideEffects(pos,state);}
     @Override protected void saveAdditional(ValueOutput out){
-        super.saveAdditional(out);out.putInt("energy",energy);inputTank.save(out.child("tank_input"));outputTank.save(out.child("tank_output"));out.putInt("counter",counter);out.putInt("burn",burn);out.putInt("production",production);out.putInt("heatAge",heatAge);out.putBoolean("pulse",pulseMode);out.putBoolean("signal",lastSignal);
-        for(int i=0;i<9;i++)if(!items.get(i).isEmpty())out.store("slot_"+i,ItemStack.CODEC,items.get(i));
+        super.saveAdditional(out);out.putInt("energy",energy);inputTank.save(out.child("tank_input"));outputTank.save(out.child("tank_output"));out.putInt("counter",counter);out.putInt("burn",burn);out.putInt("production",production);out.putInt("heatAge",heatAge);out.putLong("xp_points",experience);out.putInt("farm_index",farmIndex);out.putInt("coffee_cache",coffeeCache);out.putBoolean("brewing",brewing);out.putInt("dig_index",digIndex);out.putInt("dig_y",digY);out.putBoolean("only_ores",onlyOres);if(bound!=null)out.store("bound",BlockPos.CODEC,bound);out.putBoolean("pulse",pulseMode);out.putBoolean("signal",lastSignal);
+        for(int i=0;i<12;i++)if(!items.get(i).isEmpty())out.store("slot_"+i,ItemStack.CODEC,items.get(i));
         for(int lane=0;lane<2;lane++){out.putInt("progress_"+lane,progress[lane]);out.putString("job_"+lane,jobKey[lane]);if(!jobInput[lane].isEmpty())out.store("input_"+lane,ItemStack.CODEC,jobInput[lane]);out.store("pending_"+lane,ItemStack.CODEC.listOf(),pending[lane]);}
     }
     @Override protected void loadAdditional(ValueInput in){
-        super.loadAdditional(in);in.child("tank_input").ifPresent(inputTank::load);in.child("tank_output").ifPresent(outputTank::load);energy=Math.clamp(in.getIntOr("energy",0),0,capacity());counter=Math.clamp(in.getIntOr("counter",0),0,100);burn=Math.clamp(in.getIntOr("burn",0),0,120000);production=Math.clamp(in.getIntOr("production",0),0,256);heatAge=Math.clamp(in.getIntOr("heatAge",0),0,1000);pulseMode=in.getBooleanOr("pulse",false);lastSignal=in.getBooleanOr("signal",false);
-        for(int i=0;i<9;i++)items.set(i,in.read("slot_"+i,ItemStack.CODEC).orElse(ItemStack.EMPTY));
+        super.loadAdditional(in);coffeeCache=Math.clamp(in.getIntOr("coffee_cache",0),0,300);brewing=in.getBooleanOr("brewing",false);bound=in.read("bound",BlockPos.CODEC).orElse(null);digIndex=Math.max(0,in.getIntOr("dig_index",0));digY=in.getIntOr("dig_y",Integer.MIN_VALUE);onlyOres=in.getBooleanOr("only_ores",false);farmIndex=Math.clamp(in.getIntOr("farm_index",0),0,80);experience=Math.clamp(in.getLongOr("xp_points",0),0,Integer.MAX_VALUE);in.child("tank_input").ifPresent(inputTank::load);in.child("tank_output").ifPresent(outputTank::load);energy=Math.clamp(in.getIntOr("energy",0),0,capacity());counter=Math.clamp(in.getIntOr("counter",0),0,100);burn=Math.clamp(in.getIntOr("burn",0),0,120000);production=Math.clamp(in.getIntOr("production",0),0,256);heatAge=Math.clamp(in.getIntOr("heatAge",0),0,1000);pulseMode=in.getBooleanOr("pulse",false);lastSignal=in.getBooleanOr("signal",false);
+        for(int i=0;i<12;i++)items.set(i,in.read("slot_"+i,ItemStack.CODEC).orElse(ItemStack.EMPTY));
         for(int lane=0;lane<2;lane++){progress[lane]=Math.clamp(in.getIntOr("progress_"+lane,0),0,120000);jobKey[lane]=in.getStringOr("job_"+lane,"");jobInput[lane]=in.read("input_"+lane,ItemStack.CODEC).orElse(ItemStack.EMPTY);pending[lane].clear();pending[lane].addAll(in.read("pending_"+lane,ItemStack.CODEC.listOf()).orElse(List.of()));}
     }
 }

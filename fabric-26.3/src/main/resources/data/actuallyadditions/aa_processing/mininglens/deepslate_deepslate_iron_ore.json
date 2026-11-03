@@ -1,0 +1,11 @@
+{
+  "type": "actuallyadditions:mining_lens",
+  "ingredient": {
+    "tag": "actuallyadditions:deepslate_ore_replaceables"
+  },
+  "result": {
+    "count": 1,
+    "id": "minecraft:deepslate_iron_ore"
+  },
+  "weight": 3000
+}

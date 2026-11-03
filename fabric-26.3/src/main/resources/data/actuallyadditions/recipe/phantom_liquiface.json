@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:bucket",
+    "I": "actuallyadditions:phantom_itemface"
+  },
+  "pattern": [
+    "BIB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:phantom_liquiface"
+  }
+}

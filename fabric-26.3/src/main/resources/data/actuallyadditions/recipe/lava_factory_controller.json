@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "actuallyadditions:advanced_coil",
+    "B": "minecraft:lava_bucket",
+    "C": "actuallyadditions:iron_casing",
+    "E": "actuallyadditions:empowered_enori_crystal_block"
+  },
+  "pattern": [
+    "ACA",
+    "EAE",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:lava_factory_controller"
+  }
+}

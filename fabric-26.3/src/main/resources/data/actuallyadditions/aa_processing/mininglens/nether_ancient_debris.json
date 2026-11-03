@@ -1,0 +1,11 @@
+{
+  "type": "actuallyadditions:mining_lens",
+  "ingredient": {
+    "tag": "c:ore_bearing_ground/netherrack"
+  },
+  "result": {
+    "count": 1,
+    "id": "minecraft:ancient_debris"
+  },
+  "weight": 1
+}

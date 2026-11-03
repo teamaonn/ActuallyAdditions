@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "actuallyadditions:advanced_coil",
+    "D": "actuallyadditions:emeradic_crystal",
+    "S": "actuallyadditions:diamatine_crystal"
+  },
+  "pattern": [
+    "DSD",
+    "SCS",
+    "DSD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:drill_upgrade_silk_touch"
+  }
+}

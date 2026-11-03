@@ -22,6 +22,8 @@ public final class Content {
     public static final Map<WorkKind,WorkBlock> MACHINES=new EnumMap<>(WorkKind.class);
     public static BlockEntityType<WorkEntity> ENTITY;
     public static MenuType<WorkMenu> MENU;
+    public static MenuType<FilterMenu> FILTER_MENU;
+    public static MenuType<ItemSlotsMenu> ITEM_MENU;
     public static void initialize(){
         try(var stream=Objects.requireNonNull(Content.class.getResourceAsStream("/aa_content.json"));var reader=new InputStreamReader(stream,StandardCharsets.UTF_8)){
             var data=JsonParser.parseReader(reader).getAsJsonObject();
@@ -43,13 +45,25 @@ public final class Content {
         String[] batteries={"single_battery","double_battery","triple_battery","quadruple_battery","quintuple_battery"};
         for(int i=0;i<batteries.length;i++){final int tier=i;item(batteries[i],p->new EnergyItem(capacities[tier],rates[tier],p),new Item.Properties());}
         PreservingRecipe.register();
+        PreservingShapelessRecipe.register();
         Oils.initialize();
         Crops.initialize();
+        UtilityItems.initialize();
+        DrillItem.initialize();
+        Lenses.initialize();
+        Coffee.initialize();
+        Decorations.initialize();
+        block("phantom_booster",Block::new,BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).strength(3F));
+        item("phantom_connector",PhantomConnector::new,new Item.Properties());
+        item("filter",FilterItem::new,new Item.Properties());
+        item("solidified_experience",SolidExperience::new,new Item.Properties());
         for(var kind:WorkKind.values())MACHINES.put(kind,(WorkBlock)block(kind.id,p->new WorkBlock(kind,p),BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).strength(3F).noOcclusion()));
         ENTITY=Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,PowerMod.id("work_machine"),new BlockEntityType<>(WorkEntity::new,new HashSet<>(MACHINES.values())));
+        ITEM_MENU=Registry.register(BuiltInRegistries.MENU,PowerMod.id("item_inventory"),new MenuType<>(ItemSlotsMenu::new,FeatureFlags.DEFAULT_FLAGS));
+        FILTER_MENU=Registry.register(BuiltInRegistries.MENU,PowerMod.id("filter"),new MenuType<>(FilterMenu::new,FeatureFlags.DEFAULT_FLAGS));
         MENU=Registry.register(BuiltInRegistries.MENU,PowerMod.id("work_machine"),new MenuType<>(WorkMenu::new,FeatureFlags.DEFAULT_FLAGS));
-        ItemStorage.SIDED.registerForBlockEntity((e,side)->ContainerStorage.of(e,side),ENTITY);
-        net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.registerForBlockEntity((e,side)->e.fluidStorage(),ENTITY);
+        ItemStorage.SIDED.registerForBlockEntity((e,side)->e.kind()==WorkKind.PHANTOM_ITEM?new RemoteStorage<>(()->e.remoteItems(side)):ContainerStorage.of(e,side),ENTITY);
+        net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.registerForBlockEntity((e,side)->e.fluidStorage(side),ENTITY);
         Processing.initialize();
         net.fabricmc.fabric.api.biome.v1.BiomeModifications.addFeature(
                 net.fabricmc.fabric.api.biome.v1.BiomeSelectors.foundInOverworld(),

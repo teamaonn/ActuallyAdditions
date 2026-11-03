@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "actuallyadditions:iron_casing",
+    "E": "#c:ender_pearls",
+    "H": "minecraft:hopper",
+    "V": "actuallyadditions:void_crystal"
+  },
+  "pattern": [
+    " V ",
+    "EHE",
+    " C "
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:ranged_collector"
+  }
+}

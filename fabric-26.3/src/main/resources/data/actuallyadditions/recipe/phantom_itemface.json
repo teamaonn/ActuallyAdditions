@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "actuallyadditions:advanced_coil",
+    "C": "#c:chests/wooden",
+    "E": "actuallyadditions:ender_casing",
+    "M": "minecraft:phantom_membrane"
+  },
+  "pattern": [
+    " C ",
+    "MEM",
+    " A "
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:phantom_itemface"
+  }
+}

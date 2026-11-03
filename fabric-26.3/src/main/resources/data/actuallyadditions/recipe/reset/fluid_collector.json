@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "actuallyadditions:fluid_collector"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:fluid_collector"
+  }
+}

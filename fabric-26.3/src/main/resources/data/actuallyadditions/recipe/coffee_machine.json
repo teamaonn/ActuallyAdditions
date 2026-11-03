@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "actuallyadditions:coffee_beans",
+    "I": "actuallyadditions:iron_casing",
+    "V": "actuallyadditions:void_crystal",
+    "X": "actuallyadditions:basic_coil"
+  },
+  "pattern": [
+    " C ",
+    " I ",
+    "XVX"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:coffee_machine"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:iron_bars",
+    "Q": "actuallyadditions:black_quartz"
+  },
+  "pattern": [
+    "III",
+    "IQI",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:filter"
+  }
+}
