@@ -1,16 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "G  ",
-    " I ",
-    "  I"
-  ],
+  "category": "misc",
   "key": {
-    "G": "minecraft:gold_ingot",
-    "I": "minecraft:iron_ingot"
+    "C": "actuallyadditions:advanced_coil",
+    "S": "actuallyadditions:enori_crystal"
   },
+  "pattern": [
+    "C  ",
+    " S ",
+    "  S"
+  ],
   "result": {
-    "id": "actuallyadditions:laser_wrench",
-    "count": 1
+    "count": 1,
+    "id": "actuallyadditions:laser_wrench"
   }
 }

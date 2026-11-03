@@ -1,0 +1,10 @@
+{
+  "type": "actuallyadditions:laser",
+  "energy": 600,
+  "ingredient": {
+    "tag": "c:storage_blocks/coal"
+  },
+  "result": {
+    "id": "actuallyadditions:void_crystal_block"
+  }
+}

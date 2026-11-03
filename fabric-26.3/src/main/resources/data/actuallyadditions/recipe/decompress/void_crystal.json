@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "actuallyadditions:void_crystal_block"
+  ],
+  "result": {
+    "count": 9,
+    "id": "actuallyadditions:void_crystal"
+  }
+}

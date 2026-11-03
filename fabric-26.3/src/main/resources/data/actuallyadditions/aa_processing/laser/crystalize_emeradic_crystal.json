@@ -1,0 +1,10 @@
+{
+  "type": "actuallyadditions:laser",
+  "energy": 100,
+  "ingredient": {
+    "tag": "c:gems/emerald"
+  },
+  "result": {
+    "id": "actuallyadditions:emeradic_crystal"
+  }
+}

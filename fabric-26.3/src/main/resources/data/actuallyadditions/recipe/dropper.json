@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "actuallyadditions:advanced_coil",
+    "C": "#c:cobblestones",
+    "D": "minecraft:dropper",
+    "P": "actuallyadditions:palis_crystal"
+  },
+  "pattern": [
+    "CPC",
+    "CDA",
+    "CPC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:dropper"
+  }
+}

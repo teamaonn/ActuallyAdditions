@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "actuallyadditions:fermenting_barrel"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:fermenting_barrel"
+  }
+}

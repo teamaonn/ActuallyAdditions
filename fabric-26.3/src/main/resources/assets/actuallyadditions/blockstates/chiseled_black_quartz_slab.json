@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "actuallyadditions:block/chiseled_black_quartz_slab"
+    },
+    "type=double": {
+      "model": "actuallyadditions:block/chiseled_black_quartz_block"
+    },
+    "type=top": {
+      "model": "actuallyadditions:block/chiseled_black_quartz_slab_top"
+    }
+  }
+}

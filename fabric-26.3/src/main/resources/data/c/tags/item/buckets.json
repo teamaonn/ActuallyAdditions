@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "#c:bucket/canola_oil",
+      "required": false
+    },
+    {
+      "id": "#c:bucket/refined_canola_oil",
+      "required": false
+    },
+    {
+      "id": "#c:bucket/crystallized_oil",
+      "required": false
+    },
+    {
+      "id": "#c:bucket/empowered_oil",
+      "required": false
+    }
+  ]
+}

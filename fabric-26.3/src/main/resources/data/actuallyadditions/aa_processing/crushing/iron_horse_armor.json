@@ -1,0 +1,14 @@
+{
+  "type": "actuallyadditions:crushing",
+  "ingredient": {
+    "item": "minecraft:iron_horse_armor"
+  },
+  "result": [
+    {
+      "result": {
+        "count": 6,
+        "id": "minecraft:raw_iron"
+      }
+    }
+  ]
+}

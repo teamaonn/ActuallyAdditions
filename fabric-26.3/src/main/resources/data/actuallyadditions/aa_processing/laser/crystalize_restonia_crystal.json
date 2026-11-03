@@ -1,0 +1,10 @@
+{
+  "type": "actuallyadditions:laser",
+  "energy": 40,
+  "ingredient": {
+    "tag": "c:dusts/redstone"
+  },
+  "result": {
+    "id": "actuallyadditions:restonia_crystal"
+  }
+}

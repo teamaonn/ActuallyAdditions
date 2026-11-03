@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": "actuallyadditions:ethetic_green_block",
+    "G": "actuallyadditions:ethetic_white_block",
+    "R": "actuallyadditions:advanced_coil"
+  },
+  "pattern": [
+    " R ",
+    "EEE",
+    "GGG"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:display_stand"
+  }
+}

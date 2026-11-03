@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "actuallyadditions:coal_generator"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:coal_generator"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "actuallyadditions:copy_nbt",
+  "category": "misc",
+  "key": {
+    "C": "actuallyadditions:advanced_coil",
+    "I": "actuallyadditions:empowered_enori_crystal",
+    "R": "actuallyadditions:double_battery"
+  },
+  "pattern": [
+    " R ",
+    "ICI",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:triple_battery"
+  }
+}

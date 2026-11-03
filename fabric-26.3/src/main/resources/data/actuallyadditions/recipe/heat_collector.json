@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "actuallyadditions:advanced_coil",
+    "C": "actuallyadditions:iron_casing",
+    "E": "actuallyadditions:enori_crystal",
+    "I": "minecraft:iron_bars",
+    "R": "minecraft:repeater"
+  },
+  "pattern": [
+    "IRI",
+    "AEA",
+    "ICI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:heat_collector"
+  }
+}

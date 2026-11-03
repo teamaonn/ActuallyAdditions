@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "actuallyadditions:advanced_coil",
+    "C": "actuallyadditions:enori_crystal",
+    "E": "actuallyadditions:empowered_restonia_crystal_block",
+    "I": "actuallyadditions:iron_casing",
+    "L": "#minecraft:leaves"
+  },
+  "pattern": [
+    "CIC",
+    "ELE",
+    "CAC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:leaf_generator"
+  }
+}

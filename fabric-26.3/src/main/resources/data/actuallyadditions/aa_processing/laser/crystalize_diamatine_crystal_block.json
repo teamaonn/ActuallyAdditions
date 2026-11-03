@@ -1,0 +1,10 @@
+{
+  "type": "actuallyadditions:laser",
+  "energy": 600,
+  "ingredient": {
+    "tag": "c:storage_blocks/diamond"
+  },
+  "result": {
+    "id": "actuallyadditions:diamatine_crystal_block"
+  }
+}

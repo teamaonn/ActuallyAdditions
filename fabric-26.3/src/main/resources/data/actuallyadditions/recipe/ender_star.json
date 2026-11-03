@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:nether_star",
+    "minecraft:dragon_breath",
+    "actuallyadditions:black_quartz",
+    "minecraft:prismarine_shard"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:ender_star"
+  }
+}

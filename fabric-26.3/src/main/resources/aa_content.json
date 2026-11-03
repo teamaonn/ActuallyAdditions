@@ -1,0 +1,219 @@
+{
+  "items": [
+    "canola",
+    "ring",
+    "basic_coil",
+    "advanced_coil",
+    "rice",
+    "rice_dough",
+    "tiny_coal",
+    "tiny_charcoal",
+    "rice_slimeball",
+    "empty_cup",
+    "bats_wing",
+    "drill_core",
+    "lens",
+    "ender_star",
+    "restonia_crystal_shard",
+    "palis_crystal_shard",
+    "diamatine_crystal_shard",
+    "void_crystal_shard",
+    "emeradic_crystal_shard",
+    "enori_crystal_shard",
+    "restonia_crystal",
+    "palis_crystal",
+    "diamatine_crystal",
+    "void_crystal",
+    "emeradic_crystal",
+    "enori_crystal",
+    "empowered_restonia_crystal",
+    "empowered_palis_crystal",
+    "empowered_diamatine_crystal",
+    "empowered_void_crystal",
+    "empowered_emeradic_crystal",
+    "empowered_enori_crystal",
+    "black_quartz"
+  ],
+  "blocks": [
+    {
+      "id": "wood_casing",
+      "kind": "block"
+    },
+    {
+      "id": "iron_casing",
+      "kind": "block"
+    },
+    {
+      "id": "ender_casing",
+      "kind": "block"
+    },
+    {
+      "id": "lava_factory_casing",
+      "kind": "block"
+    },
+    {
+      "id": "black_quartz_ore",
+      "kind": "block"
+    },
+    {
+      "id": "ethetic_green_block",
+      "kind": "block"
+    },
+    {
+      "id": "ethetic_white_block",
+      "kind": "block"
+    },
+    {
+      "id": "black_quartz_block",
+      "kind": "block"
+    },
+    {
+      "id": "black_quartz_pillar_block",
+      "kind": "block"
+    },
+    {
+      "id": "chiseled_black_quartz_block",
+      "kind": "block"
+    },
+    {
+      "id": "smooth_black_quartz_block",
+      "kind": "block"
+    },
+    {
+      "id": "black_quartz_brick_block",
+      "kind": "block"
+    },
+    {
+      "id": "ethetic_green_wall",
+      "kind": "wall"
+    },
+    {
+      "id": "ethetic_white_wall",
+      "kind": "wall"
+    },
+    {
+      "id": "black_quartz_wall",
+      "kind": "wall"
+    },
+    {
+      "id": "chiseled_black_quartz_wall",
+      "kind": "wall"
+    },
+    {
+      "id": "smooth_black_quartz_wall",
+      "kind": "wall"
+    },
+    {
+      "id": "black_quartz_brick_wall",
+      "kind": "wall"
+    },
+    {
+      "id": "black_quartz_pillar_wall",
+      "kind": "wall"
+    },
+    {
+      "id": "ethetic_green_slab",
+      "kind": "slab"
+    },
+    {
+      "id": "ethetic_white_slab",
+      "kind": "slab"
+    },
+    {
+      "id": "black_quartz_slab",
+      "kind": "slab"
+    },
+    {
+      "id": "chiseled_black_quartz_slab",
+      "kind": "slab"
+    },
+    {
+      "id": "black_quartz_pillar_slab",
+      "kind": "slab"
+    },
+    {
+      "id": "smooth_black_quartz_slab",
+      "kind": "slab"
+    },
+    {
+      "id": "black_quartz_brick_slab",
+      "kind": "slab"
+    },
+    {
+      "id": "ethetic_green_stairs",
+      "kind": "stairs"
+    },
+    {
+      "id": "ethetic_white_stairs",
+      "kind": "stairs"
+    },
+    {
+      "id": "black_quartz_stair",
+      "kind": "stairs"
+    },
+    {
+      "id": "chiseled_black_quartz_stair",
+      "kind": "stairs"
+    },
+    {
+      "id": "black_quartz_pillar_stair",
+      "kind": "stairs"
+    },
+    {
+      "id": "smooth_black_quartz_stair",
+      "kind": "stairs"
+    },
+    {
+      "id": "black_quartz_brick_stair",
+      "kind": "stairs"
+    },
+    {
+      "id": "restonia_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "empowered_restonia_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "palis_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "empowered_palis_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "diamatine_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "empowered_diamatine_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "void_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "empowered_void_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "emeradic_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "empowered_emeradic_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "enori_crystal_block",
+      "kind": "block"
+    },
+    {
+      "id": "empowered_enori_crystal_block",
+      "kind": "block"
+    }
+  ]
+}

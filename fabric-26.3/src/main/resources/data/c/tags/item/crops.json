@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "#c:crops/rice",
+      "required": false
+    },
+    {
+      "id": "#c:crops/coffee",
+      "required": false
+    },
+    {
+      "id": "#c:crops/canola",
+      "required": false
+    },
+    {
+      "id": "#c:crops/flax",
+      "required": false
+    }
+  ]
+}

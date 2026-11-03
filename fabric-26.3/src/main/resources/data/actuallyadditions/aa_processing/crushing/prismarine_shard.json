@@ -1,0 +1,14 @@
+{
+  "type": "actuallyadditions:crushing",
+  "ingredient": {
+    "item": "minecraft:prismarine_shard"
+  },
+  "result": [
+    {
+      "result": {
+        "count": 1,
+        "id": "minecraft:prismarine_crystals"
+      }
+    }
+  ]
+}

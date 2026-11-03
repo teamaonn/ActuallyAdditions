@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "#c:seeds/rice",
+      "required": false
+    },
+    {
+      "id": "#c:seeds/coffee",
+      "required": false
+    },
+    {
+      "id": "#c:seeds/canola",
+      "required": false
+    },
+    {
+      "id": "#c:seeds/flax",
+      "required": false
+    }
+  ]
+}

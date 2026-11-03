@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=east,active=false": {
+      "model": "actuallyadditions:block/powered_furnace",
+      "y": 90
+    },
+    "facing=east,active=true": {
+      "model": "actuallyadditions:block/powered_furnace",
+      "y": 90
+    },
+    "facing=north,active=false": {
+      "model": "actuallyadditions:block/powered_furnace"
+    },
+    "facing=north,active=true": {
+      "model": "actuallyadditions:block/powered_furnace"
+    },
+    "facing=south,active=false": {
+      "model": "actuallyadditions:block/powered_furnace",
+      "y": 180
+    },
+    "facing=south,active=true": {
+      "model": "actuallyadditions:block/powered_furnace",
+      "y": 180
+    },
+    "facing=west,active=false": {
+      "model": "actuallyadditions:block/powered_furnace",
+      "y": 270
+    },
+    "facing=west,active=true": {
+      "model": "actuallyadditions:block/powered_furnace",
+      "y": 270
+    }
+  }
+}

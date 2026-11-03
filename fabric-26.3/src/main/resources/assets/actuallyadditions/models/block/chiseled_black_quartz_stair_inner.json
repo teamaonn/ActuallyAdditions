@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": "actuallyadditions:block/chiseled_black_quartz_block",
+    "side": "actuallyadditions:block/chiseled_black_quartz_block",
+    "top": "actuallyadditions:block/chiseled_black_quartz_block"
+  }
+}

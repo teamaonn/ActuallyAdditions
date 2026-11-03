@@ -2,6 +2,14 @@
   "schemaVersion": 1,
   "id": "actuallyadditions-power-test",
   "version": "1.0.0",
-  "entrypoints": {"fabric-gametest": ["de.ellpeck.actuallyadditions.fabric.power.PowerTests"]},
-  "depends": {"excompressum": "*", "exnihiloomnia": "*"}
+  "entrypoints": {
+    "fabric-gametest": [
+      "de.ellpeck.actuallyadditions.fabric.power.PowerTests",
+      "de.ellpeck.actuallyadditions.fabric.power.CoreTests"
+    ]
+  },
+  "depends": {
+    "excompressum": "*",
+    "exnihiloomnia": "*"
+  }
 }

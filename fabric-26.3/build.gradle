@@ -19,6 +19,6 @@ dependencies {
     if (providers.gradleProperty('omnia_jar').isPresent()) gametestImplementation files(providers.gradleProperty('omnia_jar').get())
 }
 processResources { inputs.property 'version', project.version; filesMatching('fabric.mod.json') { expand 'version': project.version } }
-java { withSourcesJar(); sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
-tasks.withType(JavaCompile).configureEach { options.release = 25; options.encoding = 'UTF-8' }
+java { toolchain.languageVersion = JavaLanguageVersion.of(25); withSourcesJar(); sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 jar { from('../LICENSE') }

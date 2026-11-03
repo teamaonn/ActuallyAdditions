@@ -1,0 +1,14 @@
+{
+  "type": "actuallyadditions:crushing",
+  "ingredient": {
+    "item": "minecraft:deepslate_redstone_ore"
+  },
+  "result": [
+    {
+      "result": {
+        "count": 10,
+        "id": "minecraft:redstone"
+      }
+    }
+  ]
+}

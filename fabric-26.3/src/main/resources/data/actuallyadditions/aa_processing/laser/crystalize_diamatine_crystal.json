@@ -1,0 +1,10 @@
+{
+  "type": "actuallyadditions:laser",
+  "energy": 60,
+  "ingredient": {
+    "tag": "c:gems/diamond"
+  },
+  "result": {
+    "id": "actuallyadditions:diamatine_crystal"
+  }
+}

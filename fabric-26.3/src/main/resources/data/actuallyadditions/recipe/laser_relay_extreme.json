@@ -1,17 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " D ",
-    "RLR",
-    " D "
-  ],
+  "category": "misc",
   "key": {
-    "D": "minecraft:diamond_block",
-    "R": "minecraft:redstone_block",
-    "L": "actuallyadditions:laser_relay_advanced"
+    "I": "actuallyadditions:empowered_diamatine_crystal",
+    "R": "actuallyadditions:laser_relay_advanced",
+    "X": "actuallyadditions:restonia_crystal"
   },
+  "pattern": [
+    " I ",
+    "XRX",
+    " I "
+  ],
   "result": {
-    "id": "actuallyadditions:laser_relay_extreme",
-    "count": 1
+    "count": 1,
+    "id": "actuallyadditions:laser_relay_extreme"
   }
 }

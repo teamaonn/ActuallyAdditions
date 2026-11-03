@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "actuallyadditions:black_quartz_brick_block",
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:black_quartz_brick_stair"
+  }
+}

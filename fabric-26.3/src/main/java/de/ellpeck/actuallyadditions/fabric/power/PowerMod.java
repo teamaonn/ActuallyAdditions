@@ -38,6 +38,7 @@ public final class PowerMod implements ModInitializer {
                 new BlockEntityType<>(RelayEntity::new, new HashSet<>(RELAYS)));
         GENERATOR_MENU = Registry.register(BuiltInRegistries.MENU, id("coal_generator"), new MenuType<>(GeneratorMenu::new, FeatureFlags.DEFAULT_FLAGS));
         ItemStorage.SIDED.registerForBlockEntity((e, side) -> ContainerStorage.of(e, side), GENERATOR_ENTITY);
+        de.ellpeck.actuallyadditions.fabric.content.Content.initialize();
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, id("power"), FabricCreativeModeTab.builder()
                 .title(Component.literal("Actually Additions: Power"))
                 .icon(() -> new ItemStack(GENERATOR)).displayItems((p, out) -> ITEMS.values().forEach(out::accept)).build());

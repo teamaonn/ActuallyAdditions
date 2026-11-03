@@ -1,0 +1,14 @@
+{
+  "type": "actuallyadditions:crushing",
+  "ingredient": {
+    "item": "minecraft:lapis_ore"
+  },
+  "result": [
+    {
+      "result": {
+        "count": 12,
+        "id": "minecraft:lapis_lazuli"
+      }
+    }
+  ]
+}

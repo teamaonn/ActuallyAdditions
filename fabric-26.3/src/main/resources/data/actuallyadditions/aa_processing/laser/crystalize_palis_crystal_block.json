@@ -1,0 +1,10 @@
+{
+  "type": "actuallyadditions:laser",
+  "energy": 400,
+  "ingredient": {
+    "tag": "c:storage_blocks/lapis"
+  },
+  "result": {
+    "id": "actuallyadditions:palis_crystal_block"
+  }
+}

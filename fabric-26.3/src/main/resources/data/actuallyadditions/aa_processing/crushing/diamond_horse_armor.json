@@ -1,0 +1,14 @@
+{
+  "type": "actuallyadditions:crushing",
+  "ingredient": {
+    "item": "minecraft:diamond_horse_armor"
+  },
+  "result": [
+    {
+      "result": {
+        "count": 6,
+        "id": "minecraft:diamond"
+      }
+    }
+  ]
+}

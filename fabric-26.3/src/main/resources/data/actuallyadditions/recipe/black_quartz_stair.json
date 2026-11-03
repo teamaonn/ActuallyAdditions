@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "Q": "actuallyadditions:black_quartz_block"
+  },
+  "pattern": [
+    "Q  ",
+    "QQ ",
+    "QQQ"
+  ],
+  "result": {
+    "count": 4,
+    "id": "actuallyadditions:black_quartz_stair"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "actuallyadditions:basic_coil",
+    "C": "#c:cobblestones",
+    "F": "minecraft:flint",
+    "I": "actuallyadditions:iron_casing",
+    "R": "actuallyadditions:restonia_crystal"
+  },
+  "pattern": [
+    "RFC",
+    "BIB",
+    "CFR"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:crusher"
+  }
+}

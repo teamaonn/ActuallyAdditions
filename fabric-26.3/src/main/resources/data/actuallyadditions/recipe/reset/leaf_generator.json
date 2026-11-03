@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "actuallyadditions:leaf_generator"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:leaf_generator"
+  }
+}

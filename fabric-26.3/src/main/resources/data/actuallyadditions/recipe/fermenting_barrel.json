@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "actuallyadditions:enori_crystal",
+    "C": "actuallyadditions:canola",
+    "L": "#minecraft:logs",
+    "W": "actuallyadditions:wood_casing"
+  },
+  "pattern": [
+    "LAL",
+    "LCL",
+    "LWL"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:fermenting_barrel"
+  }
+}

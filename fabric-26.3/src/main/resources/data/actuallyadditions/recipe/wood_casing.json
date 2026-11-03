@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "R": "#minecraft:logs",
+    "S": "#c:rods/wooden",
+    "W": "#minecraft:planks"
+  },
+  "pattern": [
+    "WSW",
+    "SRS",
+    "WSW"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:wood_casing"
+  }
+}
