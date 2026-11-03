@@ -1,7 +1,8 @@
 # Actually Additions — Fabric 26.3 port
 
-This module is the ongoing full port of the upstream mod. It is not a finished release.
-The repository root preserves the upstream NeoForge source and original assets.
+Release `0.3.0-beta.1` ports the active upstream content to Fabric Minecraft 26.3.
+It is ready for gameplay testing. The repository root preserves the upstream
+NeoForge source and original assets; the Fabric implementation is in this module.
 
 ## Requirements
 
@@ -10,11 +11,12 @@ and Balm Fabric 26.3.0.1+.
 
 ## Build and test
 
-Run `gradle build` from this directory with Java 25 and Gradle 9.7.1.
+Run `./gradlew build` from this directory with Java 25. The wrapper downloads Gradle 9.7.1.
+Install `tools/requirements.txt` before regenerating resources.
 Run `python tools/sync_upstream_content.py` from any directory after adding supported content;
 it migrates upstream recipes, item assets, tags, loot and world generation.
 
-Game tests: `gradle runGameTest`.
+Game tests: `./gradlew runGameTest`. Client checks: `./gradlew runClientGameTest` (requires a graphics session).
 The optional properties `-Pexcompressum_jar=/path/to/excompressum.jar` and
 `-Pomnia_jar=/path/to/omnia.jar` include the actual external mods for integration tests.
 They are never bundled in the output mod.
@@ -44,12 +46,28 @@ They are never bundled in the output mod.
 - Fabric JSON configuration at `config/actuallyadditions.json` for machine, worldgen and gameplay settings.
 
 `UPSTREAM_CONTENT_STATUS.json` records the migrated recipe counts and content IDs.
-All active upstream item IDs and crafting/processing recipes are migrated. This is
-still a development build: client presentation and multiplayer recipe synchronization
-are under validation. Optional integrations with NeoForge-only APIs do not apply.
+All 231 active upstream item IDs, 259 crafting/smelting/stonecutting recipes and
+251 processing recipes are migrated. The manual is included; JEI 31.17.0.108 is
+optional and displays all nine processing categories using recipes synchronized
+from the server, including datapack reloads. Processing overrides belong under
+`data/<namespace>/aa_processing/`.
 
-Validation checkpoint: 37 required game tests passed with the actual Ex Compressum
-and Ex Nihilo Omnia Fabric JARs loaded together. Tests cover processing, power,
-transaction rollback, stale network bindings, native loot, machine placement and drops,
-worms, lighting and village trade/pool registration. This does not establish that every
-client screen and optional integration has been exercised.
+## Validation
+
+- 38 required game tests passed with Ex Compressum and Ex Nihilo Omnia loaded.
+- Client game test passed with both companion mods and JEI loaded.
+- All 231 item models resolved; all 251 JEI processing layouts were constructed.
+- Native server menus for Display Stand, Crusher, Firework Box and Coffee Machine,
+  the coffee Start button and the searchable manual were exercised and rendered.
+- Native machine drop/placement, crop/ore/slab loot, worm watering, network rollback,
+  stale connections, fluid budgets and engineer-house placement are covered.
+- Packaged JAR checked for archive integrity and accidental test/dependency files.
+
+## Port details
+
+The Fabric interfaces replace the original NeoForge screens. Configuration uses
+`config/actuallyadditions.json` and takes effect after restart. Farmer and leaf
+harvesting areas support odd sizes from 1 through 65. Original NeoForge-only
+optional integrations, such as Curios and Immersive Engineering cloche recipes,
+are outside the Fabric implementation. Audio events and original sound assets are
+included; sound could not be auditioned on the headless test host.

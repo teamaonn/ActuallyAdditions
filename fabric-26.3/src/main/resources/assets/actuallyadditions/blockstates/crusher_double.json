@@ -29,6 +29,22 @@
     "facing=west,active=true": {
       "model": "actuallyadditions:block/crusher_double",
       "y": 270
+    },
+    "facing=up,active=false": {
+      "model": "actuallyadditions:block/crusher_double",
+      "x": 270
+    },
+    "facing=down,active=false": {
+      "model": "actuallyadditions:block/crusher_double",
+      "x": 90
+    },
+    "facing=up,active=true": {
+      "model": "actuallyadditions:block/crusher_double",
+      "x": 270
+    },
+    "facing=down,active=true": {
+      "model": "actuallyadditions:block/crusher_double",
+      "x": 90
     }
   }
 }

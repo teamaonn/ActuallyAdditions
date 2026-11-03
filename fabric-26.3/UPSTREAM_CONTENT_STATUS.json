@@ -253,5 +253,30 @@
   "recipes_waiting_for_other_features": [
     "compat/cloche_coffee.json",
     "compat/cloche_flax.json"
+  ],
+  "release": "0.3.0-beta.1",
+  "validation": {
+    "required_server_game_tests_passed": 38,
+    "client_game_test_passed": true,
+    "item_models_resolved": 231,
+    "jei_processing_layouts_constructed": 251,
+    "native_screens": [
+      "display_stand",
+      "crusher",
+      "firework_box",
+      "coffee_machine",
+      "manual"
+    ],
+    "companion_mods": {
+      "excompressum": "26.3.0.0-omnia.1",
+      "exnihiloomnia": "0.5.0-alpha.3",
+      "jei": "31.17.0.108"
+    }
+  },
+  "port_details": [
+    "Fabric screens replace NeoForge screens",
+    "JSON configuration requires restart; area sizes are capped at 65",
+    "NeoForge-only optional integrations are not carried over",
+    "Audio assets included; headless host has no audio device"
   ]
 }

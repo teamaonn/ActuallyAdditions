@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "actuallyadditions",
-  "version": "0.2.0-dev",
-  "name": "Actually Additions (Fabric development)",
-  "description": "Fabric 26.3 port in development. Power, crystal processing, crushers, furnace, batteries, oil processing, crops and world machinery.",
+  "version": "0.3.0-beta.1",
+  "name": "Actually Additions (Fabric)",
+  "description": "Fabric 26.3 port of Actually Additions: machines, power, item and fluid networks, farming, tools, equipment, villages and JEI integration.",
   "authors": [
     "Ellpeck and Actually Additions contributors",
     "Joshua (Fabric port)"

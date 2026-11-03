@@ -1,5 +1,5 @@
 plugins { id 'net.fabricmc.fabric-loom' version '1.18.2' }
-version = '0.2.0-dev'
+version = '0.3.0-beta.1'
 group = 'de.ellpeck.actuallyadditions'
 base { archivesName = 'actuallyadditions-fabric-26.3' }
 repositories {
@@ -14,9 +14,10 @@ dependencies {
     implementation 'net.fabricmc.fabric-api:fabric-api:0.160.7+26.3'
     implementation 'net.blay09.mods:balm-fabric:26.3.0.1'
 }
-fabricApi { configureTests { createSourceSet = true; modId = 'actuallyadditions-power-test'; enableGameTests = true; enableClientGameTests = false } }
+fabricApi { configureTests { createSourceSet = true; modId = 'actuallyadditions-power-test'; enableGameTests = true; enableClientGameTests = true } }
 // Integration fixtures are external release JARs, never bundled in the mod.
 dependencies {
+    if (providers.gradleProperty('jei_jar').isPresent()) gametestRuntimeOnly files(providers.gradleProperty('jei_jar').get())
     if (providers.gradleProperty('excompressum_jar').isPresent()) gametestImplementation files(providers.gradleProperty('excompressum_jar').get())
     if (providers.gradleProperty('omnia_jar').isPresent()) gametestImplementation files(providers.gradleProperty('omnia_jar').get())
 }

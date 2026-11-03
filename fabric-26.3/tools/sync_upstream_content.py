@@ -18,7 +18,7 @@ for crystal in ['restonia','palis','diamatine','void','emeradic','enori']:
 blocks.append({'id':'black_quartz_ore','kind':'block'})
 blocks=list({b['id']:b for b in blocks}.values())
 (resources/'aa_content.json').write_text(json.dumps({'items':items,'blocks':blocks},indent=2)+'\n')
-machines=re.findall(r'\w+\("([^\"]+)",',(module/'src/main/java/de/ellpeck/actuallyadditions/fabric/content/WorkKind.java').read_text())
+machines=re.findall(r'(?m)^\s+[A-Z_]+\("([^\"]+)",',(module/'src/main/java/de/ellpeck/actuallyadditions/fabric/content/WorkKind.java').read_text())
 power=['coal_generator','laser_relay','laser_relay_advanced','laser_relay_extreme','laser_wrench','laser_upgrade_range']
 batteries={prefix+'_battery' for prefix in ['single','double','triple','quadruple','quintuple']}
 oilnames={"canola_oil","refined_canola_oil","crystallized_oil","empowered_oil"}
@@ -120,7 +120,7 @@ for kind in ['configured_feature','placed_feature']:
  if kind=='configured_feature':
   data=json.loads(target.read_text());data={'type':'minecraft:ore',**data['config']};data['targets']=[{**x,'state':x['state']['Name']} for x in data['targets']];write(resources/'data/actuallyadditions/worldgen/feature/ore_black_quartz.json',data);target.unlink()
 copy('data/actuallyadditions/loot_table/blocks/black_quartz_ore.json')
-write(module/'UPSTREAM_CONTENT_STATUS.json',{'implemented_items':sorted(known),'copied_recipes':counts,'recipes_waiting_for_other_features':skipped})
+statuspath=module/'UPSTREAM_CONTENT_STATUS.json';status=json.loads(statuspath.read_text()) if statuspath.exists() else {};status.update({'implemented_items':sorted(known),'copied_recipes':counts,'recipes_waiting_for_other_features':skipped});write(statuspath,status)
 print(len(known),'registered item IDs;',counts)
 
 for name in sorted(oilnames):
@@ -194,7 +194,19 @@ for p in (resources/'data/actuallyadditions/loot_table').rglob('*.json'):
   data['pools'][0]['entries'][0]['modifier']={'type':'minecraft:set_count','count':2,'condition':{'type':'minecraft:match_block','blocks':'actuallyadditions:'+name,'state':{'type':'double'}}}
  write(p,data)
 # Structure palette states are upgraded by Minecraft's structure data fixer.
-copy('data/actuallyadditions/structure/andrew_period_house.nbt')
+structure=copy('data/actuallyadditions/structure/andrew_period_house.nbt')
+import nbtlib
+nbt=nbtlib.load(structure)
+for state in nbt['palette']:
+ props=state.get('Properties',{})
+ if 'lit' in props and str(state.get('Name','')).startswith('actuallyadditions:'):props['active']=props.pop('lit')
+for block in nbt['blocks']:
+ data=block.get('nbt');name=str(data.get('id','')) if data is not None else ''
+ if not name.startswith('actuallyadditions:'):continue
+ kind=name.split(':',1)[1]
+ target='coal_generator' if kind=='coal_generator' else 'energy_laser_relay' if kind.startswith('laser_relay') else 'work_machine'
+ block['nbt']=nbtlib.Compound({'id':nbtlib.String('actuallyadditions:'+target),'energy':nbtlib.Int(int(data.get('Energy',0)))})
+nbt.save(structure)
 data=json.loads((generated/'data/actuallyadditions/worldgen/processor_list/engineer_house.json').read_text())
 for processor in data['processors']:
  for rule in processor.get('rules',[]):
@@ -217,3 +229,18 @@ for level,buy,item,a,b,c,d in trade_data:
  data={'wants':{'id':'actuallyadditions:'+item if buy else 'minecraft:emerald','count':count(a,b)},'gives':{'id':'minecraft:emerald' if buy else 'actuallyadditions:'+item},'max_uses':16,'xp':2 if level==1 else 10,'reputation_discount':.05,'given_item_modifier':{'type':'minecraft:set_count','count':count(c,d)}}
  write(resources/f'data/actuallyadditions/villager_trade/{name}.json',data)
 for level,ids in trade_ids.items():write(resources/f'data/actuallyadditions/trade_set/engineer/level_{level}.json',{'amount':min(2,len(ids)),'trades':ids})
+
+# Shared Fabric machine state supports all six facings; fill vertical rotations
+# for upstream models whose original block allowed only horizontal placement.
+for name in list(machines)+power[:4]:
+ p=assets/f'blockstates/{name}.json'
+ if not p.exists():continue
+ data=json.loads(p.read_text());variants=data.get('variants',{})
+ for key,value in list(variants.items()):
+  if 'facing=north' not in key:continue
+  for facing,x in [('up',270),('down',90)]:
+   target=key.replace('facing=north','facing='+facing)
+   if target in variants:continue
+   def rotated(model):return {**model,'x':(model.get('x',0)+x)%360}
+   variants[target]=[rotated(m) for m in value] if isinstance(value,list) else rotated(value)
+ write(p,data)

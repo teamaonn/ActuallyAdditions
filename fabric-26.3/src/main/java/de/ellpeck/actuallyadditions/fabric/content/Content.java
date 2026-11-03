@@ -71,6 +71,7 @@ public final class Content {
         ItemStorage.SIDED.registerForBlockEntity((e,side)->e.itemStorage(side),ENTITY);
         net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.registerForBlockEntity((e,side)->e.fluidStorage(side),ENTITY);
         Processing.initialize();
+        MachineSounds.initialize();
         Villages.initialize();
         ExtraLoot.initialize();
         net.fabricmc.fabric.api.biome.v1.BiomeModifications.addFeature(

@@ -139,7 +139,7 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         var beans=items.getFirst();if(coffeeCache<=298&&beans.is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("coffee_beans"))){beans.shrink(1);coffeeCache+=2;setChanged();}
         if(!brewing)return false;
         if(!items.get(1).is(de.ellpeck.actuallyadditions.fabric.power.PowerMod.ITEMS.get("empty_cup"))||!items.get(2).isEmpty()||coffeeCache<35||inputTank.variant.getFluid()!=net.minecraft.world.level.material.Fluids.WATER||inputTank.amount<500L*81){progress[0]=0;brewing=false;setChanged();return false;}
-        if(energy<150)return false;energy-=150;progress[0]++;setChanged();
+        if(energy<150)return false;if(progress[0]%30==0)MachineSounds.play(this,"coffee_machine",.1F);energy-=150;progress[0]++;setChanged();
         if(progress[0]>=500){
             var ingredients=new ArrayList<>(items.subList(3,11));var output=Coffee.brew(level,ingredients);
             try(var tx=net.fabricmc.fabric.api.transfer.v1.transaction.Transaction.openOuter()){if(inputTank.take(inputTank.variant,500L*81,tx)!=500L*81)return false;tx.commit();}
@@ -402,7 +402,7 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
         }
         if(!key.equals(jobKey[lane])||!same(jobInput[lane],input)){progress[lane]=0;jobInput[lane]=input.copyWithCount(1);jobKey[lane]=key;setChanged();}
         if(!canFit(lane,preview)||energy<cost)return false;
-        energy-=cost;progress[lane]++;setChanged();
+        energy-=cost;progress[lane]++;setChanged();if(lane==0&&kind()!=WorkKind.FURNACE&&progress[lane]%20==1)MachineSounds.play(this,"crusher",.025F);
         if(progress[lane]>=duration){
             pending[lane].addAll(crushing==null?preview:Processing.outputs(level,crushing,true));
             input.shrink(1);reset(lane);flush(lane);
@@ -455,7 +455,7 @@ public final class WorkEntity extends BlockEntity implements WorldlyContainer,Me
     public boolean fire(){
         var lens=items.getFirst().getItem() instanceof Lenses l?l:null;int distance=lens==null?10:lens.distance;
         if(!(level instanceof ServerLevel server)||energy<1000+(lens==null?0:lens.minimum))return false;
-        energy-=1000;setChanged();var side=getBlockState().getValue(PowerBlock.FACING);
+        energy-=1000;setChanged();MachineSounds.play(this,"reconstructor",.35F);var side=getBlockState().getValue(PowerBlock.FACING);
         BlockPos end=worldPosition.relative(side,distance);
         for(int d=1;d<=distance;d++){var p=worldPosition.relative(side,d);if(!level.hasChunkAt(p)){end=worldPosition.relative(side,d-1);break;}if(!level.getBlockState(p).isAir()){end=p;break;}}
         if(lens!=null){var start=Vec3.atCenterOf(worldPosition);var finish=Vec3.atCenterOf(end);lens.fire(this,server,end,new AABB(start,finish).inflate(.35));beam(server,start,finish);return true;}
