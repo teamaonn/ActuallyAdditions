@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "actuallyadditions:iron_casing",
+    "C": "actuallyadditions:enori_crystal",
+    "F": "minecraft:firework_rocket",
+    "G": "#c:gunpowders",
+    "S": "#c:rods/wooden"
+  },
+  "pattern": [
+    "GFG",
+    "SAS",
+    "CCC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:firework_box"
+  }
+}

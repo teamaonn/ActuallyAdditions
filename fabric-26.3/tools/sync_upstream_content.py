@@ -18,7 +18,7 @@ for crystal in ['restonia','palis','diamatine','void','emeradic','enori']:
 blocks.append({'id':'black_quartz_ore','kind':'block'})
 blocks=list({b['id']:b for b in blocks}.values())
 (resources/'aa_content.json').write_text(json.dumps({'items':items,'blocks':blocks},indent=2)+'\n')
-machines=['atomic_reconstructor','empowerer','display_stand','powered_furnace','crusher','crusher_double','energizer','enervator','battery_box','breaker','placer','dropper','long_range_breaker','heat_collector','leaf_generator','bio_reactor','canola_press','fermenting_barrel','oil_generator','feeder','xp_solidifier','farmer','ranged_collector','fluid_collector','fluid_placer','lava_factory_controller','vertical_digger','phantom_itemface','phantom_energyface','phantom_liquiface','phantom_redstoneface','phantom_breaker','phantom_placer','coffee_machine']
+machines=re.findall(r'\w+\("([^\"]+)",',(module/'src/main/java/de/ellpeck/actuallyadditions/fabric/content/WorkKind.java').read_text())
 power=['coal_generator','laser_relay','laser_relay_advanced','laser_relay_extreme','laser_wrench','laser_upgrade_range']
 batteries={prefix+'_battery' for prefix in ['single','double','triple','quadruple','quintuple']}
 oilnames={"canola_oil","refined_canola_oil","crystallized_oil","empowered_oil"}
@@ -28,7 +28,12 @@ decor={"phantom_booster"}|{"lamp_"+n for n in ["white","orange","magenta","light
 utilities={n+"_aiot" for n in ["wooden","stone","iron","gold","diamond","netherite"]}|{"crafter_on_a_stick","teleport_staff"}
 drills={"drill_"+n for n in ["white","orange","magenta","light_blue","yellow","lime","pink","gray","light_gray","cyan","purple","blue","brown","green","red","black"]}|{"drill_upgrade_"+n for n in ["speed","speed_ii","speed_iii","silk_touch","fortune","fortune_ii","three_by_three","five_by_five","block_placing"]}|{"travelers_sack"}
 lenses={"lens_of_"+n for n in ["color","the_miner","certain_death","the_killer","detonation","disenchanting"]}
+clusters={n+'_crystal_cluster' for n in ['restonia','palis','diamatine','void','emeradic','enori']}
+decor|=clusters|{'tiny_torch'}
 known={"coffee_cup"}|lenses|drills|utilities|{"phantom_connector","filter"}|decor|{"solidified_experience"}|seeds|{n+"_bucket" for n in oilnames}|batteries|set(items)|{b['id'] for b in blocks}|set(machines)|set(power)
+known|={'handheld_filler','water_bowl','worm','booklet'}
+known|=set(re.findall(r'Content.item\("([^\"]+)"',(module/'src/main/java/de/ellpeck/actuallyadditions/fabric/content/Accessories.java').read_text()))|{'drill_pattern','leaf_blo_pattern','phan_con_pattern','book_pattern'}
+
 assets=resources/'assets/actuallyadditions';generated=root/'src/generated/resources';main=root/'src/main/resources'
 def write(path,data):path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(data,indent=2).replace('c:slimeballs','c:slime_balls')+'\n')
 def copy(rel):
@@ -74,6 +79,11 @@ def refs(value):
  return set()
 def ingredient(v):
  if isinstance(v,dict):
+  if v.get('type')=='neoforge:components':
+   components={}
+   for key,value in v.get('components',{}).items():
+    if key in ['minecraft:enchantments','minecraft:stored_enchantments'] and value.get('levels'):components[key]=value['levels']
+   return {'fabric:type':'fabric:components','base':ingredient(v['items']),'components':components}
   if v.get('type')=='actuallyadditions:target_nbt':return ingredient(v['base'])
   if set(v)=={'item'}:return v['item']
   if set(v)=={'tag'}:return '#'+v['tag']
@@ -104,7 +114,7 @@ lang=json.loads((main/'assets/actuallyadditions/lang/en_us.json').read_text())
 lang={k:v for k,v in lang.items() if k.startswith(('block.actuallyadditions.','item.actuallyadditions.')) and k.split('.',2)[2] in known}
 langpath=assets/'lang/en_us.json';existing=json.loads(langpath.read_text()) if langpath.exists() else {};existing.update(lang);write(langpath,existing)
 # Keep all implemented block families mineable with a pickaxe.
-write(resources/'data/minecraft/tags/block/mineable/pickaxe.json',{'replace':False,'values':['actuallyadditions:'+n for n in sorted({b['id'] for b in blocks}|set(machines)|set(power[:4]))]})
+write(resources/'data/minecraft/tags/block/mineable/pickaxe.json',{'replace':False,'values':['actuallyadditions:'+n for n in sorted({b['id'] for b in blocks}|set(machines)|decor|set(power[:4]))]})
 for kind in ['configured_feature','placed_feature']:
  target=copy(f'data/actuallyadditions/worldgen/{kind}/ore_black_quartz.json')
  if kind=='configured_feature':
@@ -131,3 +141,24 @@ write(resources/'data/minecraft/tags/block/crops.json',{'replace':False,'values'
 write(resources/'data/actuallyadditions/tags/block/mineable/aio.json',{'replace':False,'values':['#minecraft:mineable/pickaxe','#minecraft:mineable/axe','#minecraft:mineable/shovel','#minecraft:mineable/hoe']})
 
 write(resources/'data/actuallyadditions/tags/block/mineable/drill.json',{'replace':False,'values':['#minecraft:mineable/pickaxe','#minecraft:mineable/shovel']})
+
+for name in ['drill','leaf_blo','phan_con','book']:
+ copy(f'data/actuallyadditions/banner_pattern/{name}.json')
+ tag='leaf_blower' if name=='leaf_blo' else name
+ copy(f'data/actuallyadditions/tags/banner_pattern/pattern_item/{tag}.json')
+ copy(f'assets/actuallyadditions/textures/entity/banner/{name}.png');copy(f'assets/actuallyadditions/textures/entity/shield/{name}.png')
+write(assets/'equipment/goggles.json',{'layers':{'humanoid':[{'texture':'actuallyadditions:goggles'}]}})
+p=assets/'textures/entity/equipment/humanoid/goggles.png';p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(main/'assets/actuallyadditions/textures/models/armor/goggles_layer_1.png',p)
+
+for name in clusters:copy(f'data/actuallyadditions/loot_table/blocks/{name}.json')
+for block in blocks:copy(f'data/actuallyadditions/loot_table/blocks/{block["id"]}.json')
+
+original_lang=json.loads((main/'assets/actuallyadditions/lang/en_us.json').read_text())
+chapters=[{'title':'Fabric controls','text':'Link two relays with the Laser Linking Wrench. Sneak-use the wrench to remove links. Open a relay to configure mode and priority. Advanced item relays accept two reusable filters: input and output. Item Interfaces expose adjacent item relay networks; Hopping Interfaces move four items every ten ticks. Fluid relays in input mode pull from attached tanks.\n\nInstall range upgrades on both ends for connections beyond 15 blocks. Invisibility upgrades hide beams; goggles or a held wrench reveal them.\n\nBind Phantomfaces with the Phantom Connector. Boosters above supported machines double their range, up to three boosters. Player Interfaces bind to their placer or to a player selected with the Player Probe.\n\nOpen a drill to install upgrades. Sneaking disables area mining. Use the placing upgrade to choose a hotbar slot. Sneak-use batteries to toggle inventory charging.\n\nSneak-select a filler material, then select two corners and hold the filler. The Coffee Machine takes beans, empty cups, water and ingredients; press Start. Item Filters use ghost slots without consuming examples. The Item Tag selects tags from an item in your other hand.'}]
+for key,value in original_lang.items():
+ if not key.startswith('booklet.actuallyadditions.chapter.') or '.text.' in key:continue
+ texts=[(k,v) for k,v in original_lang.items() if k.startswith(key+'.text.')]
+ if not texts:continue
+ text='\n\n'.join(v for k,v in sorted(texts,key=lambda x:int(x[0].rsplit('.',1)[1])))
+ chapters.append({'title':value,'text':re.sub(r'<[^>]*>','',text.replace('<n>','\n'))})
+write(assets/'guide.json',chapters)

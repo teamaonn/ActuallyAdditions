@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "actuallyadditions:empowered_enori_crystal",
+    "O": "actuallyadditions:ring",
+    "S": "#c:seeds"
+  },
+  "pattern": [
+    "SIS",
+    "IOI",
+    "SIS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:ring_of_growth"
+  }
+}

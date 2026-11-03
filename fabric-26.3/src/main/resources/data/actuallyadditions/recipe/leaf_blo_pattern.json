@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "actuallyadditions:leaf_blower",
+    "minecraft:paper"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:leaf_blo_pattern"
+  }
+}

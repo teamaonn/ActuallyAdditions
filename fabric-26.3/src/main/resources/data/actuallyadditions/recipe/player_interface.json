@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "actuallyadditions:advanced_coil",
+    "C": "actuallyadditions:ender_casing",
+    "E": "actuallyadditions:empowered_diamatine_crystal",
+    "W": "minecraft:wither_skeleton_skull"
+  },
+  "pattern": [
+    "CWC",
+    "ECE",
+    "CAC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:player_interface"
+  }
+}

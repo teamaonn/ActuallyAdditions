@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": "actuallyadditions:ender_star",
+    "N": "actuallyadditions:diamatine_crystal_block",
+    "W": "actuallyadditions:bats_wing"
+  },
+  "pattern": [
+    "WNW",
+    "WDW",
+    "WNW"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:wings_of_the_bats"
+  }
+}

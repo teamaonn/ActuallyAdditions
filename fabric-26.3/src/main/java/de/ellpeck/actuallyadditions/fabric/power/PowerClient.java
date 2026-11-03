@@ -5,6 +5,8 @@ import net.minecraft.client.gui.screens.MenuScreens;
 
 public final class PowerClient implements ClientModInitializer {
     @Override public void onInitializeClient() {
+        net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(de.ellpeck.actuallyadditions.fabric.content.WormEntity.TYPE,net.minecraft.client.renderer.entity.ItemEntityRenderer::new);
+        MenuScreens.register(de.ellpeck.actuallyadditions.fabric.content.Content.GUIDE_MENU,de.ellpeck.actuallyadditions.fabric.content.GuideScreen::new);
         for(var f:de.ellpeck.actuallyadditions.fabric.content.Oils.ALL.values()){
             var still=new net.minecraft.client.resources.model.sprite.Material(PowerMod.id("block/fluid/"+f.name+"_still"));
             var flowing=new net.minecraft.client.resources.model.sprite.Material(PowerMod.id("block/fluid/"+f.name+"_flowing"));

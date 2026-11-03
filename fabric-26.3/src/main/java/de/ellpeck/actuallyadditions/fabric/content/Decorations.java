@@ -12,6 +12,8 @@ import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.phys.BlockHitResult;
 public final class Decorations {
     public static void initialize(){
+        for(var name:java.util.List.of("restonia","palis","diamatine","void","emeradic","enori"))Content.block(name+"_crystal_cluster",p->new AmethystClusterBlock(19,2,p),BlockBehaviour.Properties.ofFullCopy(Blocks.AMETHYST_CLUSTER).lightLevel(s->7));
+        Content.block("tiny_torch",TinyTorch::new,BlockBehaviour.Properties.ofFullCopy(Blocks.TORCH).lightLevel(s->12));
         for(var color:DyeColor.values())Content.block("lamp_"+color.getName(),Lamp::new,BlockBehaviour.Properties.ofFullCopy(Blocks.GLASS).lightLevel(s->s.getValue(PowerBlock.ACTIVE)?15:0));
         Content.block("greenhouse_glass",Greenhouse::new,BlockBehaviour.Properties.ofFullCopy(Blocks.GLASS).randomTicks());
     }

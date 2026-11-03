@@ -24,5 +24,8 @@
     "java": ">=25",
     "fabric-api": ">=0.160.7",
     "balm-fabric": ">=26.3.0.1"
-  }
+  },
+  "mixins": [
+    "actuallyadditions.mixins.json"
+  ]
 }

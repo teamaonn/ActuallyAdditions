@@ -5,7 +5,7 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 public final class WorkMenu extends AbstractContainerMenu {
     public final ContainerData data;private final Container container;
-    public WorkMenu(int id,Inventory inventory){this(id,inventory,new SimpleContainer(12),new SimpleContainerData(14));}
+    public WorkMenu(int id,Inventory inventory){this(id,inventory,new SimpleContainer(12),new SimpleContainerData(28));}
     public WorkMenu(int id,Inventory inventory,Container container,ContainerData data){
         super(Content.MENU,id);this.container=container;this.data=data;
         for(int i=0;i<12;i++){final int slot=i;addSlot(new Slot(container,i,35+(i%3)*36,32+(i/3)*20){
@@ -19,7 +19,7 @@ public final class WorkMenu extends AbstractContainerMenu {
     public WorkKind kind(){return WorkKind.values()[Math.clamp(data.get(4),0,WorkKind.values().length-1)];}
     public int capacity(){return (data.get(7)&65535)|((data.get(8)&65535)<<16);}
     public int energy(){return (data.get(0)&65535)|((data.get(1)&65535)<<16);}
-    @Override public boolean clickMenuButton(Player player,int id){if(id==0&&container instanceof WorkEntity e&&e.kind()==WorkKind.COFFEE){e.brewing=true;e.setChanged();return true;}return false;}
+    @Override public boolean clickMenuButton(Player player,int id){if(id>=100&&id<124&&container instanceof WorkEntity e&&e.kind()==WorkKind.FIREWORK){e.lighting.adjust((id-100)/2,id%2==0?-1:1);return true;}if((id==10||id==11)&&container instanceof WorkEntity e&&e.isTransportRelay()){if(id==10)e.network.priority=Math.floorMod(e.network.priority+1,256);else e.network.mode=(e.network.mode+1)%3;e.setChanged();return true;}if(id==0&&container instanceof WorkEntity e&&e.kind()==WorkKind.COFFEE){e.brewing=true;e.setChanged();return true;}return false;}
     @Override public boolean stillValid(Player player){return container.stillValid(player);}
     @Override public ItemStack quickMoveStack(Player player,int index){
         var slot=slots.get(index);if(!slot.hasItem())return ItemStack.EMPTY;var stack=slot.getItem();var copy=stack.copy();

@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "de.ellpeck.actuallyadditions.fabric.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ExplosionMixin"
+  ],
+  "client": [
+    "GogglesMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

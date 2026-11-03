@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:iron_bars",
+    "H": "minecraft:wither_skeleton_skull",
+    "I": "minecraft:iron_helmet",
+    "R": "actuallyadditions:empowered_restonia_crystal"
+  },
+  "pattern": [
+    "A A",
+    "AIA",
+    "RHR"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:player_probe"
+  }
+}

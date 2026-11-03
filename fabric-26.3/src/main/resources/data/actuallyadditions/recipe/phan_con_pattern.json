@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "actuallyadditions:phantom_connector",
+    "minecraft:paper"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:phan_con_pattern"
+  }
+}

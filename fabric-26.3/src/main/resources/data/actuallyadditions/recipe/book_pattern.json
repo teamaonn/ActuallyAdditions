@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "actuallyadditions:booklet",
+    "minecraft:paper"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:book_pattern"
+  }
+}

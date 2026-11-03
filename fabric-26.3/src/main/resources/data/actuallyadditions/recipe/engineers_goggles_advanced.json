@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "actuallyadditions:engineers_goggles",
+    "I": "minecraft:iron_bars",
+    "R": "actuallyadditions:empowered_restonia_crystal"
+  },
+  "pattern": [
+    " R ",
+    "IGI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "actuallyadditions:engineers_goggles_advanced"
+  }
+}

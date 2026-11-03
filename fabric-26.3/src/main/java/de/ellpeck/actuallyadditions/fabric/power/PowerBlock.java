@@ -29,6 +29,7 @@ public final class PowerBlock extends Block implements EntityBlock {
     @Override protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return tier < 0 ? Shapes.block() : Block.box(1, 1, 1, 15, 15, 15);
     }
+    @Override protected java.util.List<ItemStack> getDrops(BlockState s,net.minecraft.world.level.storage.loot.LootParams.Builder p){return de.ellpeck.actuallyadditions.fabric.content.PortableData.attach(s,p,super.getDrops(s,p));}
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return tier < 0 ? new GeneratorEntity(pos, state) : new RelayEntity(pos, state);
     }
@@ -40,6 +41,7 @@ public final class PowerBlock extends Block implements EntityBlock {
     }
     @Override protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (stack.getItem() instanceof LaserWrench) return InteractionResult.PASS;
+        if(tier>=0&&stack.is(PowerMod.ITEMS.get("laser_upgrade_invisibility"))){if(!level.isClientSide()&&level.getBlockEntity(pos) instanceof RelayEntity relay&&!relay.invisible){relay.invisible=true;relay.changed();if(!player.isCreative())stack.shrink(1);}return InteractionResult.SUCCESS;}
         if (tier >= 0 && stack.is(PowerMod.ITEMS.get("laser_upgrade_range"))) {
             if (!level.isClientSide() && level.getBlockEntity(pos) instanceof RelayEntity relay) {
                 if (!relay.rangeUpgrade) {

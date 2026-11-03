@@ -18,7 +18,7 @@ public final class RelayEntity extends BlockEntity implements BalmEnergyStorageP
     private static boolean routing;
     public UUID node = UUID.randomUUID();
     public final Map<BlockPos, UUID> links = new LinkedHashMap<>();
-    public boolean rangeUpgrade;
+    public boolean rangeUpgrade,invisible;
     public Mode mode = Mode.BOTH;
     private long budgetTick = Long.MIN_VALUE, lastTransfer = Long.MIN_VALUE;
     private int used, cursor;
@@ -139,20 +139,21 @@ public final class RelayEntity extends BlockEntity implements BalmEnergyStorageP
             int points = Math.max(2, (int)(delta.length() * 2));
             for (int i = 0; i <= points; i++) {
                 var p = start.add(delta.scale(i / (double)points));
-                server.sendParticles(new DustParticleOptions(0x45A8FF, 0.6F), p.x, p.y, p.z, 1, 0, 0, 0, 0);
+                if(invisible||validPeer(entry.getKey(),entry.getValue()).invisible){for(var player:server.players())if(de.ellpeck.actuallyadditions.fabric.content.Accessories.canSeeLasers(player))server.sendParticles(player,new DustParticleOptions(0x45A8FF,.6F),false,false,p.x,p.y,p.z,1,0,0,0,0);}else server.sendParticles(new DustParticleOptions(0x45A8FF, 0.6F), p.x, p.y, p.z, 1, 0, 0, 0, 0);
             }
         }
     }
     @Override public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         if (level instanceof ServerLevel) {
             unlinkAll();
+            if(invisible)Block.popResource(level,pos,new net.minecraft.world.item.ItemStack(PowerMod.ITEMS.get("laser_upgrade_invisibility")));
             if (rangeUpgrade) Block.popResource(level, pos, new net.minecraft.world.item.ItemStack(PowerMod.ITEMS.get("laser_upgrade_range")));
         }
         super.preRemoveSideEffects(pos, state);
     }
     @Override protected void saveAdditional(ValueOutput out) {
         super.saveAdditional(out);
-        out.putString("node", node.toString()); out.putString("mode", mode.name()); out.putBoolean("range_upgrade", rangeUpgrade);
+        out.putString("node", node.toString()); out.putString("mode", mode.name()); out.putBoolean("range_upgrade", rangeUpgrade);out.putBoolean("invisible",invisible);
         out.putInt("links", links.size()); int i = 0;
         for (var entry : links.entrySet()) {
             var child = out.child("link_" + i++); child.putInt("x", entry.getKey().getX()); child.putInt("y", entry.getKey().getY()); child.putInt("z", entry.getKey().getZ()); child.putString("node", entry.getValue().toString());
@@ -162,7 +163,7 @@ public final class RelayEntity extends BlockEntity implements BalmEnergyStorageP
         super.loadAdditional(in);
         try { node = UUID.fromString(in.getStringOr("node", node.toString())); } catch (IllegalArgumentException ignored) {}
         try { mode = Mode.valueOf(in.getStringOr("mode", "BOTH")); } catch (IllegalArgumentException ignored) { mode = Mode.BOTH; }
-        rangeUpgrade = in.getBooleanOr("range_upgrade", false);
+        rangeUpgrade = in.getBooleanOr("range_upgrade", false);invisible=in.getBooleanOr("invisible",false);
         links.clear();
         int size = Math.clamp(in.getIntOr("links", 0), 0, 4096);
         for (int i = 0; i < size; i++) in.child("link_" + i).ifPresent(child -> {

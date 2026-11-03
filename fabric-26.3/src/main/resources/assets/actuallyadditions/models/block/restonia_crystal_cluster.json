@@ -1,0 +1,6 @@
+{
+	"parent": "actuallyadditions:block/raw_ore_template",
+	"textures": {
+		"palette": "actuallyadditions:block/models/restonia_crystal"
+	}
+}

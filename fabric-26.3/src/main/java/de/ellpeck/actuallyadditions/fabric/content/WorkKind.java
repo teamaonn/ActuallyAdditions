@@ -1,5 +1,14 @@
 package de.ellpeck.actuallyadditions.fabric.content;
 public enum WorkKind {
+    ITEM_RELAY("laser_relay_item",0,0,0),
+    ADVANCED_ITEM_RELAY("laser_relay_item_advanced",0,0,2),
+    FLUID_RELAY("laser_relay_fluids",0,0,0),
+    ITEM_INTERFACE("item_interface",0,0,0),
+    HOPPING_INTERFACE("hopping_item_interface",0,0,0),
+    PLAYER_INTERFACE("player_interface",30000,50,0),
+    SHOCK("shock_suppressor",300000,400,0),
+    LAMP_CONTROLLER("lamp_controller",0,0,0),
+    FIREWORK("firework_box",20000,200,0),
     COFFEE("coffee_machine",300000,250,11),
     PHANTOM_ITEM("phantom_itemface",0,0,0),
     PHANTOM_FLUID("phantom_liquiface",0,0,0),
