@@ -2,6 +2,7 @@
 	"credit": "Made with Blockbench",
 	"ambientocclusion": false,
 	"textures": {
+		"missing": "#base",
 		"particle": "actuallyadditions:block/item_interface_side",
 		"inside": "actuallyadditions:block/item_interface_side",
 		"base": "actuallyadditions:block/base_texture",

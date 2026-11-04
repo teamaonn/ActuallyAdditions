@@ -71,3 +71,12 @@ harvesting areas support odd sizes from 1 through 65. Original NeoForge-only
 optional integrations, such as Curios and Immersive Engineering cloche recipes,
 are outside the Fabric implementation. Audio events and original sound assets are
 included; sound could not be auditioned on the headless test host.
+
+### 0.3.0-beta.2: village texture corrections
+
+Thirteen machine model files contained faces referencing an unassigned
+`#missing` material. These faces now resolve to each model's existing casing
+texture; the correction also applies to the inherited item models. The resource
+synchronizer preserves the repair. `tools/verify_asset_materials.py` resolves
+parent models and texture variables, so a valid parent path cannot hide an
+unassigned face material again.

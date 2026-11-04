@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+		"missing": "#base",
 		"base": "actuallyadditions:block/base_texture",
 		"side": "actuallyadditions:block/empowerer_side",
 		"particle": "actuallyadditions:block/empowerer_top",

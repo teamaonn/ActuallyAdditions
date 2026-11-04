@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+		"missing": "#base",
 		"4": "actuallyadditions:block/base_texture_small",
 		"5": "actuallyadditions:block/farmer_top_animation",
 		"7": "actuallyadditions:block/farmer_front_animation",

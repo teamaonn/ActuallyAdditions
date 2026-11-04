@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+		"missing": "#base",
 		"3": "actuallyadditions:block/base_texture_large",
 		"4": "actuallyadditions:block/leaf_gen_animated",
 		"5": "actuallyadditions:block/base_texture_vent",

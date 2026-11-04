@@ -1,5 +1,5 @@
 plugins { id 'net.fabricmc.fabric-loom' version '1.18.2' }
-version = '0.3.0-beta.1'
+version = '0.3.0-beta.2'
 group = 'de.ellpeck.actuallyadditions'
 base { archivesName = 'actuallyadditions-fabric-26.3' }
 repositories {

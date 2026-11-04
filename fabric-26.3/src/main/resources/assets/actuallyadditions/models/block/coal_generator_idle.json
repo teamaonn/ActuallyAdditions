@@ -1,6 +1,7 @@
 {
   "credit": "Made with Blockbench",
   "textures": {
+    "missing": "#base",
     "base": "actuallyadditions:block/base_texture",
     "particle": "actuallyadditions:block/coal_generator_front",
     "front": "actuallyadditions:block/coal_generator_front",

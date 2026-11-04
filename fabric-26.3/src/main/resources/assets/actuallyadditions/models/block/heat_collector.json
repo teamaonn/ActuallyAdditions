@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+		"missing": "#base",
 		"3": "actuallyadditions:block/base_texture_small",
 		"base": "actuallyadditions:block/base_texture",
 		"particle": "actuallyadditions:block/heat_collector_side",

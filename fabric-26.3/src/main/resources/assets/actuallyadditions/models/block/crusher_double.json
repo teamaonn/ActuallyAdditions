@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+		"missing": "#base",
 		"6": "actuallyadditions:block/base_texture_small",
 		"8": "actuallyadditions:block/base_texture_back",
 		"base": "actuallyadditions:block/base_texture",

@@ -244,3 +244,11 @@ for name in list(machines)+power[:4]:
    def rotated(model):return {**model,'x':(model.get('x',0)+x)%360}
    variants[target]=[rotated(m) for m in value] if isinstance(value,list) else rotated(value)
  write(p,data)
+
+# Blockbench's unassigned #missing faces need a valid native casing material.
+for p in (assets/'models').rglob('*.json'):
+ data=json.loads(p.read_text());faces=[face for element in data.get('elements',[]) for face in element.get('faces',{}).values()]
+ if any(face.get('texture')=='#missing' for face in faces):
+  textures=data.setdefault('textures',{});fallback=next((name for name in ['base','side','particle'] if name in textures),None)
+  if fallback is None:raise RuntimeError('No casing material for '+str(p))
+  raw=p.read_text();raw=re.sub(r'(\"textures\"\s*:\s*\{)(\s*)',lambda m:m[1]+m[2]+'\"missing\": '+json.dumps('#'+fallback)+','+m[2],raw,count=1);p.write_text(raw)

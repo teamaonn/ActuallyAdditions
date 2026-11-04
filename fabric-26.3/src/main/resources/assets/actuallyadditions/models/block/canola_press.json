@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+		"missing": "#side",
 		"particle": "actuallyadditions:block/canola_press",
 		"side": "actuallyadditions:block/canola_press",
 		"top": "actuallyadditions:block/canola_top"

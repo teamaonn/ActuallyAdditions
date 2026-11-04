@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+		"missing": "#base",
 		"5": "actuallyadditions:block/feeder_top",
 		"particle": "actuallyadditions:block/feeder_top",
 		"base": "actuallyadditions:block/base_texture",

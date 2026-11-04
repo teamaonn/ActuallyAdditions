@@ -254,7 +254,7 @@
     "compat/cloche_coffee.json",
     "compat/cloche_flax.json"
   ],
-  "release": "0.3.0-beta.1",
+  "release": "0.3.0-beta.2",
   "validation": {
     "required_server_game_tests_passed": 38,
     "client_game_test_passed": true,
@@ -268,8 +268,8 @@
       "manual"
     ],
     "companion_mods": {
-      "excompressum": "26.3.0.0-omnia.1",
-      "exnihiloomnia": "0.5.0-alpha.3",
+      "excompressum": "26.3.0.0-omnia.2",
+      "exnihiloomnia": "0.5.0-alpha.4",
       "jei": "31.17.0.108"
     }
   },
@@ -278,5 +278,13 @@
     "JSON configuration requires restart; area sizes are capped at 65",
     "NeoForge-only optional integrations are not carried over",
     "Audio assets included; headless host has no audio device"
-  ]
+  ],
+  "compatibility_update": {
+    "aa_required_tests_passed": 38,
+    "omnia_required_tests_passed": 29,
+    "excompressum_required_tests_passed": 7,
+    "concrete_models_resolved": 949,
+    "textures_resolved": 471,
+    "unassigned_machine_models_repaired": 13
+  }
 }
