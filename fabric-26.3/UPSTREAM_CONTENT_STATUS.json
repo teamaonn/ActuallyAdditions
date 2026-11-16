@@ -254,7 +254,7 @@
     "compat/cloche_coffee.json",
     "compat/cloche_flax.json"
   ],
-  "release": "0.3.0-beta.2",
+  "release": "0.3.0-beta.3",
   "validation": {
     "required_server_game_tests_passed": 38,
     "client_game_test_passed": true,

@@ -7,9 +7,13 @@ import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.level.Level;
 import java.util.List;
 import de.ellpeck.actuallyadditions.fabric.power.PowerMod;
+import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
 public record PreservingShapelessRecipe(ShapelessRecipe delegate) implements CraftingRecipe {
     public static final RecipeSerializer<PreservingShapelessRecipe> SERIALIZER=new RecipeSerializer<>(ShapelessRecipe.MAP_CODEC.xmap(PreservingShapelessRecipe::new,PreservingShapelessRecipe::delegate),ShapelessRecipe.STREAM_CODEC.map(PreservingShapelessRecipe::new,PreservingShapelessRecipe::delegate));
-    public static void register(){Registry.register(BuiltInRegistries.RECIPE_SERIALIZER,PowerMod.id("copy_nbt_shapeless"),SERIALIZER);}
+    public static void register(){
+        Registry.register(BuiltInRegistries.RECIPE_SERIALIZER,PowerMod.id("copy_nbt_shapeless"),SERIALIZER);
+        RecipeSynchronization.synchronizeRecipeSerializer(SERIALIZER);
+    }
     @Override public boolean matches(CraftingInput input,Level level){return delegate.matches(input,level);}
     @Override public ItemStack assemble(CraftingInput input){var output=delegate.assemble(input);for(var stack:input.items())if(stack.getItem() instanceof EnergyItem){output.applyComponents(stack.getComponentsPatch());if(output.getItem() instanceof EnergyItem)EnergyItem.set(output,EnergyItem.energy(output));break;}return output;}
     @Override public RecipeSerializer<? extends CraftingRecipe> getSerializer(){return SERIALIZER;}

@@ -4,6 +4,7 @@ import com.google.gson.*;
 import de.ellpeck.actuallyadditions.fabric.content.*;
 import de.ellpeck.actuallyadditions.fabric.power.PowerMod;
 import mezz.jei.api.*;
+import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.builder.*;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -34,6 +35,15 @@ public final class ActuallyJei implements IModPlugin {
  @Override public void onRuntimeUnavailable(){runtime=null;shown=List.of();}
  public static boolean ready(){return runtime!=null&&shown==Processing.CLIENT&&!shown.isEmpty();}
  public static void validateLayouts(){if(!ready())throw new IllegalStateException("JEI is not ready");var manager=runtime.getRecipeManager();for(var e:shown){var type=TYPES.get(e.type());if(type!=null){var category=manager.getRecipeCategory(type);if(category==null)throw new IllegalStateException("Missing JEI category "+e.type());manager.getRecipeIngredients(category,e);}}}
+ public static void validateCraftingRecipes(){
+  var recipeIds=runtime.getRecipeManager().createRecipeLookup(RecipeTypes.CRAFTING).get()
+   .map(recipe->recipe.id().identifier()).collect(java.util.stream.Collectors.toSet());
+  var expected=new ArrayList<>(List.of("double_battery","triple_battery","quadruple_battery","quintuple_battery"));
+  for(var color:DyeColor.values())expected.add("drill_coloring/dye_drill_"+color.getName());
+  for(var id:expected){
+   if(!recipeIds.contains(PowerMod.id(id)))throw new IllegalStateException("Missing JEI crafting recipe "+id);
+  }
+ }
  public static void refresh(){if(runtime==null||shown==Processing.CLIENT)return;var manager=runtime.getRecipeManager();for(var key:TYPES.keySet()){manager.hideRecipes(TYPES.get(key),shown.stream().filter(e->e.type().equals(key)).toList());manager.addRecipes(TYPES.get(key),Processing.CLIENT.stream().filter(e->e.type().equals(key)).toList());}shown=Processing.CLIENT;}
  private static List<ItemStack> ingredients(JsonElement value){
   if(value==null)return List.of();if(value.isJsonArray()){List<ItemStack> result=new ArrayList<>();for(var element:value.getAsJsonArray())result.addAll(ingredients(element));return result;}
